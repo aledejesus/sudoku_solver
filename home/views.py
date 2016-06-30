@@ -1,4 +1,9 @@
-from django.http import HttpResponse
+from django.shortcuts import render
+
 
 def home(request):
-    return HttpResponse("Welcome to Sudoku Solver")
+    context = {
+        'name': 'Alejandro'
+    }
+
+    return render(request, 'home.html', context)
