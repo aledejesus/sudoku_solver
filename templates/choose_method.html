@@ -1,6 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
 <center>
   <h3 style="display: block"> Choose method to upload puzzle: </h3>
-  <button><a>Input numbers</a></button>
+  <a href="/solver/numbers">Input numbers</a>
   <button><a>Upload image</a></button>
   <button><a>Upload PDF</a></button>
 </center>
+{% endblock %}
