@@ -3,7 +3,7 @@
 <center>
   <h3 style="display: block"> Input numbers</h3>
 
-  <div id="grid">
+  <!-- <div id="grid">
     <table>
       {% for i in "012345678" %}
       <tr>
@@ -12,19 +12,27 @@
         {% endfor %}
       </tr>
       {% endfor %}
-  </div>
+  </div> -->
 
-  <!-- [START] KEEP TESTING -->
-  <!-- <div id="id_grid">
-    {% for i in "012345678" %}
-    <div class="grid_sqr">
-      {% for i in "012345678" %}
-      <div class="number_slot">
+  <!-- [START] PUT GRID IN A DIFFERENT HTML FILE. IMPORT IT -->
+  <div id="id_grid" class="grid">
+    {% for i in "012" %}
+    <div id="row1" class="grid_row">
+      {% for i in "012" %}
+      <div class="grid_sqr">
+        {% for i in "012" %}
+        <div class="grid_sub_row">
+          {% for i in "012" %}
+          <div class="number_slot">
+          </div>
+          {% endfor %}
+        </div>
+        {% endfor %}
       </div>
       {% endfor %}
     </div>
     {% endfor %}
-  </div> -->
-  <!-- [END] KEEP TESTING -->
+  </div>
+  <!-- [START] PUT GRID IN A DIFFERENT HTML FILE. IMPORT IT -->
 </center>
 {% endblock %}

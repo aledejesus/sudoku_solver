@@ -1,15 +1,13 @@
-/*.grid_sqr {
-  width: 360px;
-  height: 360px;
-  border-width: 2px;
+.grid_sqr {
+  width: 126px;
+  height: 126px;
+  border-width: 1px;
   border-style: solid;
   border-color: black;
-  border-spacing: 0px;
-  margin: 0px;
-  padding: 0px;
-}*/
+  display: inline-block;
+}
 
-td, tr{
+/*td, tr{
   width: 40px;
   height: 40px;
   border-width: 1px;
@@ -17,22 +15,35 @@ td, tr{
   border-color: black;
   margin: 0px;
   padding: 0px;
-}
+}*/
 
-table {
+/*table {
   border-width: 2px;
   border-style: solid;
   border-color: black;
   border-spacing: 0px;
-}
+}*/
 
-/*.number_slot {
+.number_slot {
+  display: inline-block;
   width: 40px;
   height: 40px;
   border-width: 1px;
   border-style: solid;
   border-color: black;
+}
+
+.grid_row {
+  display: block;
+}
+
+.grid * {
   border-spacing: 0px;
   margin: 0px;
   padding: 0px;
-}*/
+  font-size: 0px;
+}
+
+.grid_sub_row {
+  display: block;
+}
