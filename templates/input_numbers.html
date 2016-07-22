@@ -3,25 +3,15 @@
 
 {% block content %}
 <center>
-  <h3 style="display: block"> Input numbers</h3>
+  <h3 style="display: block">Input numbers</h3>
 
   <!-- [START] PUT GRID IN A DIFFERENT HTML FILE. IMPORT IT -->
   <div id="id_grid" class="grid">
-    {% for row_i in "012" %}
-    <div id="row{{ row_i }}" class="grid_row">
-      {% for sqr_i in "012" %}
-      <div class="grid_sqr">
-        {% for sub_row_i in "012" %}
-        <div class="grid_sub_row">
-          {% for number_slot_i in "012" %}
-          <div class="number_slot">
-          </div>
-          {% endfor %}
+    {% for i in "012345678" %}
+      {% for i in "012345678" %}
+        <div class="number_slot">
         </div>
-        {% endfor %}
-      </div>
       {% endfor %}
-    </div>
     {% endfor %}
   </div>
   <!-- [START] PUT GRID IN A DIFFERENT HTML FILE. IMPORT IT -->
@@ -31,5 +21,33 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+  $(document).ready(function(){
+    // Used to set IDs for the number slots. Format: <index>_<row><col>
+    var col = 0;
+    var row = 0;
+    var grid = $('#id_grid');
+    var number_slots = grid.find('.number_slot');
+
+    for (var i = 0; i < number_slots.length; i++){
+      var number_slot = $(number_slots[i]);
+
+      number_slot.attr('id', i + '_' + row + col); // set id
+
+      // [START] SET SQUARE BORDERS
+        // SET BORDERS WITH A LESS REGEX (DO RESEARCH):
+          // ALL COLUMN 3 AND 6 SLOTS HAVE THE RIGHT BORDER WIDER
+          // ALL ROW 3 AND 6 SLOTS HAVE THE BOTTOM BORDER WIDER
+      // [END] SET SQUARE BORDERS
+
+      if (++col >= 9){ // reset col value
+        col = 0;
+        row++;
+      }
+
+    }
+  });
+</script>
+
 <script type="text/babel" src="{% static 'js/main.js' %}"></script>
 {% endblock %}

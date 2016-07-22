@@ -1,38 +1,13 @@
-.grid_sqr {
+.grid {
+  width: 378px;
+  height: 378px;
   border-width: 1px;
-  border-style: solid;
-  border-color: black;
-  display: inline-block;
-}
-
-/*td, tr{
-  width: 40px;
-  height: 40px;
-  border-width: 1px;
-  border-style: solid;
-  border-color: black;
-  margin: 0px;
-  padding: 0px;
-}*/
-
-/*table {
-  border-width: 2px;
   border-style: solid;
   border-color: black;
   border-spacing: 0px;
-}*/
-
-.number_slot {
-  display: inline-block;
-  width: 40px;
-  height: 40px;
-  border-width: 1px;
-  border-style: solid;
-  border-color: black;
-}
-
-.grid_row {
-  display: block;
+  margin: 0px;
+  padding: 0px;
+  font-size: 0px;
 }
 
 .grid * {
@@ -42,6 +17,11 @@
   font-size: 0px;
 }
 
-.grid_sub_row {
-  display: block;
+.number_slot {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: black;
 }
