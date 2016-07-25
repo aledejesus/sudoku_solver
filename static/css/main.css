@@ -10,7 +10,7 @@
   font-size: 0px;
 }
 
-.grid * {
+.grid {
   border-spacing: 0px;
   margin: 0px;
   padding: 0px;
@@ -24,4 +24,9 @@
   border-width: 1px;
   border-style: solid;
   border-color: black;
+  font-size: 30px;
+}
+
+.number_input {
+  width: 30px;
 }
