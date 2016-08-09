@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 from django.db import models
 import json
 from sets import ImmutableSet
+import numpy as np
 
 
 class SudokuPuzzle(models.Model):
@@ -10,17 +11,16 @@ class SudokuPuzzle(models.Model):
     solved_puzzle = models.CharField(max_length=300)
     solved = models.BooleanField(default=False)
     SQUARE_DEFS = (
-        # ('SQR#', first_cell_row, first_cell_col,
-        #   last_cell_row, last_cell_col)
-        ('SQR0', 0, 0, 2, 2),
-        ('SQR1', 0, 3, 2, 5),
-        ('SQR2', 0, 6, 2, 8),
-        ('SQR3', 3, 0, 5, 2),
-        ('SQR4', 3, 3, 5, 5),
-        ('SQR5', 3, 6, 5, 8),
-        ('SQR6', 6, 0, 8, 2),
-        ('SQR7', 6, 3, 8, 5),
-        ('SQR8', 6, 6, 8, 8)
+        # (first_cell_row, first_cell_col, last_cell_row, last_cell_col) # SQR#
+        (0, 0, 2, 2),  # SQR0
+        (0, 3, 2, 5),  # SQR1
+        (0, 6, 2, 8),  # SQR2
+        (3, 0, 5, 2),  # SQR3
+        (3, 3, 5, 5),  # SQR4
+        (3, 6, 5, 8),  # SQR5
+        (6, 0, 8, 2),  # SQR6
+        (6, 3, 8, 5),  # SQR7
+        (6, 6, 8, 8)  # SQR8
     )
 
     def solve(self):
@@ -35,20 +35,46 @@ class SudokuPuzzle(models.Model):
                 cell_poss = all_poss
                 row = self.get_row(puzzle, i)
                 col = self.get_col(puzzle, j)
-                sqr = self.get_sqr()
+                sqr = self.get_sqr(puzzle, i, j)
 
-    def get_row(arr, i):
+    def get_row(self, arr, i):
         return arr[i]
 
-    def get_col(arr, i):
-        return arr[:, i]
+    def get_col(self, arr, j):
+        np_arr = np.array(arr)
+        return np_arr[:, j].tolist()
 
-    # GIVE SQUARE BASED ON CELL INDEXES
-    # def get_sqr(self, i):
-    #     sqr_def = self.SQUARE_DEFS[i]
+    def get_sqr(self, arr, i, j):
+        sqr_boundaries = [0, 0, 0, 0]
 
-        # return self.unsolved_puzzlearr[
-        #     sqr_def[1]:sqr_def[2]+1, sqr_def[3]:sqr_def[4]+1]
+        # get square row boundaries
+        if (i >= 0 and i <= 2):
+            sqr_boundaries[0] = 0
+            sqr_boundaries[2] = 2
+        elif (i >= 3 and i <= 5):
+            sqr_boundaries[0] = 3
+            sqr_boundaries[2] = 5
+        elif (i >= 6 and i <= 8):
+            sqr_boundaries[0] = 6
+            sqr_boundaries[2] = 8
+
+        # get square col boundaries
+        if (j >= 0 and j <= 2):
+            sqr_boundaries[1] = 0
+            sqr_boundaries[3] = 2
+        elif (j >= 3 and j <= 5):
+            sqr_boundaries[1] = 3
+            sqr_boundaries[3] = 5
+        elif (j >= 6 and j <= 8):
+            sqr_boundaries[1] = 6
+            sqr_boundaries[3] = 8
+
+        sqr_def = [item for item in self.SQUARE_DEFS if set(
+            sqr_boundaries).issubset(set(item))][0]
+        np_arr = np.array(arr)
+
+        return np_arr[
+            sqr_def[0]:sqr_def[1]+1, sqr_def[2]:sqr_def[3]+1].tolist()
 
     # def get_qty_items(arr): RESEARCH IF NEEDED
 
