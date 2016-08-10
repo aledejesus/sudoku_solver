@@ -1,8 +1,9 @@
 from __future__ import unicode_literals
 from django.db import models
 import json
-from sets import ImmutableSet
+from sets import Set, ImmutableSet
 import numpy as np
+from sudoku_solver import utils
 
 
 class SudokuPuzzle(models.Model):
@@ -32,17 +33,28 @@ class SudokuPuzzle(models.Model):
         # LOOP TO CREATE PUZZLE CELLS
         for i in range(9):
             for j in range(9):
-                cell_poss = all_poss
+                cell_poss = Set(all_poss)
                 row = self.get_row(puzzle, i)
                 col = self.get_col(puzzle, j)
                 sqr = self.get_sqr(puzzle, i, j)
 
+                cell_poss = cell_poss.difference(set(row))
+                cell_poss = cell_poss.difference(set(col))
+                cell_poss = cell_poss.difference(set(sqr))
+
+                # if cell_poss has only one value then create PuzzleCell
+                # with that value and put filled as True
+
+                # if not then create the PuzzleCell with the possibilities
+
+                # change puzzle value for the generated object
+
     def get_row(self, arr, i):
-        return arr[i]
+        return utils.remove_zeroes(arr[i])
 
     def get_col(self, arr, j):
         np_arr = np.array(arr)
-        return np_arr[:, j].tolist()
+        return utils.remove_zeroes(np_arr[:, j].tolist())
 
     def get_sqr(self, arr, i, j):
         sqr_boundaries = [0, 0, 0, 0]
@@ -72,11 +84,10 @@ class SudokuPuzzle(models.Model):
         sqr_def = [item for item in self.SQUARE_DEFS if set(
             sqr_boundaries).issubset(set(item))][0]
         np_arr = np.array(arr)
+        sqr = np_arr[sqr_def[0]:sqr_def[2]+1, sqr_def[1]:sqr_def[3]+1]
 
-        return np_arr[
-            sqr_def[0]:sqr_def[1]+1, sqr_def[2]:sqr_def[3]+1].tolist()
-
-    # def get_qty_items(arr): RESEARCH IF NEEDED
+        # np.ravel puts array values in a 1D list
+        return utils.remove_zeroes(np.ravel(sqr).tolist())
 
 
 class PuzzleCell(models.Model):
@@ -84,4 +95,7 @@ class PuzzleCell(models.Model):
     value = models.IntegerField()
     possibilities = models.CharField(max_length=9)
     filled = models.BooleanField(default=False)
-    # position needed ??
+    position = models.CharField(max_length=2)
+
+    def __str__(self):
+        return self.value
