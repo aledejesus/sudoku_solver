@@ -26,7 +26,7 @@
       {% for j in "012345678" %}
         <div class="number_slot">
           <center>
-            <span style="position: absolute;"></span>
+            <span style="position: absolute;">{{ solved_easy|return_item:i|return_item:j }}</span>
           </center>
         </div>
       {% endfor %}

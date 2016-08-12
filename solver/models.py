@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 from django.db import models
 import json
-from sets import Set, ImmutableSet
+from sets import ImmutableSet
 import numpy as np
 from sudoku_solver import utils
 
@@ -34,7 +34,7 @@ class SudokuPuzzle(models.Model):
         for i in range(9):
             for j in range(9):
                 if puzzle[i][j] == 0:
-                    cell_poss = Set(all_poss)
+                    cell_poss = set(all_poss)
                     row = self.get_row(puzzle, i)
                     col = self.get_col(puzzle, j)
                     sqr = self.get_sqr(puzzle, i, j)
@@ -43,20 +43,13 @@ class SudokuPuzzle(models.Model):
                     cell_poss = cell_poss.difference(set(col))
                     cell_poss = cell_poss.difference(set(sqr))
 
-                    # if cell_poss has only one value then create PuzzleCell
-                    # with that value and put filled as True
-
-                    # if not then create the PuzzleCell with the possibilities
-
-                    # change puzzle value for the generated object
-
                     if len(cell_poss) <= 0 or len(cell_poss) > 9:
                         pass
-                        # raise exception
+                        # TODO: raise exception
 
-                    if len(cell_poss) == 1:
+                    elif len(cell_poss) == 1:
                         cell = PuzzleCell(
-                            puzzle_id=self.pk, value=list(cell_poss)[0],
+                            puzzle_pk=self.pk, value=list(cell_poss)[0],
                             filled=True, position=str(i) + str(j))
 
                         # add value to puzzle if found
@@ -64,15 +57,17 @@ class SudokuPuzzle(models.Model):
 
                     else:
                         cell = PuzzleCell(
-                            puzzle_id=self.pk, value=0,
+                            puzzle_pk=self.pk,
                             possibilities=json.dumps(list(cell_poss)),
                             position=str(i) + str(j))
 
                     # add cell to PuzzleCells array
-                    import pdb; pdb.set_trace()
                     puzzle_cells_dict[cell.position] = cell
 
-        import pdb; pdb.set_trace()
+        # TODO: put inside if len(puzzle) == 81:
+        self.solved_puzzle = json.dumps(puzzle)
+        self.solved = True
+        self.save()
 
     def get_row(self, arr, i):
         return utils.remove_zeroes(arr[i])
@@ -116,11 +111,12 @@ class SudokuPuzzle(models.Model):
 
 
 class PuzzleCell(models.Model):
-    puzzle_id = models.IntegerField()
-    value = models.IntegerField(blank=True, null=True)
-    possibilities = models.CharField(max_length=9, blank=True, null=True)
+    puzzle_pk = models.IntegerField()
+    value = models.IntegerField(default=0, blank=True, null=True)
+    possibilities = models.CharField(
+        default='[]', max_length=50, blank=True, null=True)
     filled = models.BooleanField(default=False)
     position = models.CharField(max_length=2, blank=True, null=True)
 
     def __str__(self):
-        return self.value
+        return str(self.value)

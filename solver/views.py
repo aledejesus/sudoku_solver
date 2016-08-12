@@ -28,14 +28,18 @@ def test_solver(request):
         row = row.replace('0', ' ')
         unsolved_easy_disp.append(row)
 
+    f.close()
     puzzle = SudokuPuzzle(unsolved_puzzle=json.dumps(unsolved_easy_db))
     puzzle.save()
     puzzle.solve()
 
+    # TODO: compare with solution in file
+
     context = {
         "unsolved_easy": unsolved_easy_disp,
+        "solved_easy": json.loads(puzzle.solved_puzzle)
     }
 
-    # DELETE PUZZLES FROM DATABASE AFTER TEST
+    # TODO: DELETE PUZZLES FROM DATABASE AFTER TEST
 
     return render(request, 'test_solver.html', context)
