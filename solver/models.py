@@ -27,27 +27,52 @@ class SudokuPuzzle(models.Model):
     def solve(self):
         #  MAIN SOLVING THREAD. CALL FUNCTIONS FROM HERE
         puzzle = json.loads(self.unsolved_puzzle)
-
         all_poss = ImmutableSet([1, 2, 3, 4, 5, 6, 7, 8, 9])
+        puzzle_cells_dict = {}
 
         # LOOP TO CREATE PUZZLE CELLS
         for i in range(9):
             for j in range(9):
-                cell_poss = Set(all_poss)
-                row = self.get_row(puzzle, i)
-                col = self.get_col(puzzle, j)
-                sqr = self.get_sqr(puzzle, i, j)
+                if puzzle[i][j] == 0:
+                    cell_poss = Set(all_poss)
+                    row = self.get_row(puzzle, i)
+                    col = self.get_col(puzzle, j)
+                    sqr = self.get_sqr(puzzle, i, j)
 
-                cell_poss = cell_poss.difference(set(row))
-                cell_poss = cell_poss.difference(set(col))
-                cell_poss = cell_poss.difference(set(sqr))
+                    cell_poss = cell_poss.difference(set(row))
+                    cell_poss = cell_poss.difference(set(col))
+                    cell_poss = cell_poss.difference(set(sqr))
 
-                # if cell_poss has only one value then create PuzzleCell
-                # with that value and put filled as True
+                    # if cell_poss has only one value then create PuzzleCell
+                    # with that value and put filled as True
 
-                # if not then create the PuzzleCell with the possibilities
+                    # if not then create the PuzzleCell with the possibilities
 
-                # change puzzle value for the generated object
+                    # change puzzle value for the generated object
+
+                    if len(cell_poss) <= 0 or len(cell_poss) > 9:
+                        pass
+                        # raise exception
+
+                    if len(cell_poss) == 1:
+                        cell = PuzzleCell(
+                            puzzle_id=self.pk, value=list(cell_poss)[0],
+                            filled=True, position=str(i) + str(j))
+
+                        # add value to puzzle if found
+                        puzzle[i][j] = cell.value
+
+                    else:
+                        cell = PuzzleCell(
+                            puzzle_id=self.pk, value=0,
+                            possibilities=json.dumps(list(cell_poss)),
+                            position=str(i) + str(j))
+
+                    # add cell to PuzzleCells array
+                    import pdb; pdb.set_trace()
+                    puzzle_cells_dict[cell.position] = cell
+
+        import pdb; pdb.set_trace()
 
     def get_row(self, arr, i):
         return utils.remove_zeroes(arr[i])
@@ -92,10 +117,10 @@ class SudokuPuzzle(models.Model):
 
 class PuzzleCell(models.Model):
     puzzle_id = models.IntegerField()
-    value = models.IntegerField()
-    possibilities = models.CharField(max_length=9)
+    value = models.IntegerField(blank=True, null=True)
+    possibilities = models.CharField(max_length=9, blank=True, null=True)
     filled = models.BooleanField(default=False)
-    position = models.CharField(max_length=2)
+    position = models.CharField(max_length=2, blank=True, null=True)
 
     def __str__(self):
         return self.value
