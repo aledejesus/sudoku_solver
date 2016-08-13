@@ -25,44 +25,74 @@ class SudokuPuzzle(models.Model):
     )
 
     def solve(self):
-        #  MAIN SOLVING THREAD. CALL FUNCTIONS FROM HERE
+        #  MAIN SOLVING FLOW. CALL FUNCTIONS FROM HERE
         puzzle = json.loads(self.unsolved_puzzle)
         all_poss = ImmutableSet([1, 2, 3, 4, 5, 6, 7, 8, 9])
         puzzle_cells_dict = {}
+        qty_vals_bef = len(utils.remove_zeroes(np.ravel(
+            puzzle).tolist()))  # known vals qty BEFORE running single_pos_algo
+        qty_vals_aft = 81  # known vals qty AFTER running single_pos_algo
+        first_run = True  # first time running single_pos_algo
 
-        # LOOP TO CREATE PUZZLE CELLS
-        for i in range(9):
-            for j in range(9):
-                if puzzle[i][j] == 0:
-                    cell_poss = set(all_poss)
-                    row = self.get_row(puzzle, i)
-                    col = self.get_col(puzzle, j)
-                    sqr = self.get_sqr(puzzle, i, j)
+        # TODO: put logic inside for loops in a function called single_pos_algo
 
-                    cell_poss = cell_poss.difference(set(row))
-                    cell_poss = cell_poss.difference(set(col))
-                    cell_poss = cell_poss.difference(set(sqr))
+        while qty_vals_bef < qty_vals_aft:  # if values were found run again
+            qty_vals_bef = len(utils.remove_zeroes(np.ravel(puzzle).tolist()))
 
-                    if len(cell_poss) <= 0 or len(cell_poss) > 9:
-                        pass
-                        # TODO: raise exception
+            for i in range(9):
+                for j in range(9):
+                    if puzzle[i][j] == 0:
+                        cell_poss = set(all_poss)
+                        row = self.get_row(puzzle, i)
+                        col = self.get_col(puzzle, j)
+                        sqr = self.get_sqr(puzzle, i, j)
 
-                    elif len(cell_poss) == 1:
-                        cell = PuzzleCell(
-                            puzzle_pk=self.pk, value=list(cell_poss)[0],
-                            filled=True, position=str(i) + str(j))
+                        cell_poss = cell_poss.difference(set(row))
+                        cell_poss = cell_poss.difference(set(col))
+                        cell_poss = cell_poss.difference(set(sqr))
 
-                        # add value to puzzle if found
-                        puzzle[i][j] = cell.value
+                        if len(cell_poss) <= 0 or len(cell_poss) > 9:
+                            pass
+                            # TODO: raise exception
 
-                    else:
-                        cell = PuzzleCell(
-                            puzzle_pk=self.pk,
-                            possibilities=json.dumps(list(cell_poss)),
-                            position=str(i) + str(j))
+                        elif len(cell_poss) == 1:
+                            # create PuzzleCell if first time algo is run
+                            # get PuzzleCell if not
+                            if first_run:
+                                cell = PuzzleCell(
+                                    puzzle_pk=self.pk,
+                                    value=list(cell_poss)[0], filled=True,
+                                    position=str(i) + str(j))
+                            else:
+                                cell = PuzzleCell.objects.get(
+                                    puzzle_pk=self.pk,
+                                    position=str(i) + str(j))
+                                cell.value = list(cell_poss)[0]
+                                cell.filled = True
+                                cell.save()
 
-                    # add cell to PuzzleCells array
-                    puzzle_cells_dict[cell.position] = cell
+                            # add value to puzzle if found
+                            puzzle[i][j] = cell.value
+
+                        else:
+                            if first_run:
+                                cell = PuzzleCell(
+                                    puzzle_pk=self.pk,
+                                    possibilities=json.dumps(list(cell_poss)),
+                                    position=str(i) + str(j))
+                            else:
+                                cell = PuzzleCell.objects.get(
+                                    puzzle_pk=self.pk,
+                                    position=str(i) + str(j))
+                                cell.possibilities = json.dumps(
+                                    list(cell_poss))
+                                cell.save()
+
+                        # add cell to PuzzleCells array
+                        puzzle_cells_dict[cell.position] = cell
+
+            first_run = False
+            qty_vals_aft = len(utils.remove_zeroes(np.ravel(puzzle).tolist()))
 
         # TODO: put inside if len(puzzle) == 81:
         self.solved_puzzle = json.dumps(puzzle)
