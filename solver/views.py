@@ -14,6 +14,7 @@ def input_numbers(request):
 def test_solver(request):
     f = open('static/txt/test_easy.txt')
     unsolved_easy_db = []
+    solved_easy_db = []
     unsolved_easy_disp = []
     f.readline()  # first line should contain 'UNSOLVED' so we skip it
 
@@ -27,6 +28,16 @@ def test_solver(request):
 
         row = row.replace('0', ' ')
         unsolved_easy_disp.append(row)
+
+    f.readline()  # skips line with 'SOLVED' text
+
+    for i in range(9):
+        row = f.readline()
+        row = row[0:-1]  # remove /n at the end
+        solved_easy_db.append([])
+
+        for j in range(9):
+            solved_easy_db[i].append(int(row[j]))
 
     f.close()
     puzzle = SudokuPuzzle(unsolved_puzzle=json.dumps(unsolved_easy_db))

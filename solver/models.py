@@ -69,7 +69,6 @@ class SudokuPuzzle(models.Model):
                                     position=str(i) + str(j))
                                 cell.value = list(cell_poss)[0]
                                 cell.filled = True
-                                cell.save()
 
                             # add value to puzzle if found
                             puzzle[i][j] = cell.value
@@ -86,8 +85,8 @@ class SudokuPuzzle(models.Model):
                                     position=str(i) + str(j))
                                 cell.possibilities = json.dumps(
                                     list(cell_poss))
-                                cell.save()
 
+                        cell.save()
                         # add cell to PuzzleCells array
                         puzzle_cells_dict[cell.position] = cell
 
@@ -106,8 +105,12 @@ class SudokuPuzzle(models.Model):
         np_arr = np.array(arr)
         return utils.remove_zeroes(np_arr[:, j].tolist())
 
-    def get_sqr(self, arr, i, j):
+    def get_sqr(self, arr, i, j):  # TODO: FIX BUG IN GET_sQR METHOD
         sqr_boundaries = [0, 0, 0, 0]
+
+
+        # if (i == 8 and j == 8):
+            # import pdb; pdb.set_trace()
 
         # get square row boundaries
         if (i >= 0 and i <= 2):
@@ -131,10 +134,10 @@ class SudokuPuzzle(models.Model):
             sqr_boundaries[1] = 6
             sqr_boundaries[3] = 8
 
-        sqr_def = [item for item in self.SQUARE_DEFS if set(
-            sqr_boundaries).issubset(set(item))][0]
         np_arr = np.array(arr)
-        sqr = np_arr[sqr_def[0]:sqr_def[2]+1, sqr_def[1]:sqr_def[3]+1]
+        sqr = np_arr[
+            sqr_boundaries[0]:sqr_boundaries[2]+1,
+            sqr_boundaries[1]:sqr_boundaries[3]+1]
 
         # np.ravel puts array values in a 1D list
         return utils.remove_zeroes(np.ravel(sqr).tolist())
