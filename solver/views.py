@@ -44,11 +44,16 @@ def test_solver(request):
     puzzle.save()
     puzzle.solve()
 
-    # TODO: compare with solution in file
+    # TODO: research if this is the best way to compare solutions. STACKOVERF
+    if (json.dumps(solved_easy_db) == puzzle.solved_puzzle):
+        passed_easy_test = True
+    else:
+        passed_easy_test = False
 
     context = {
         "unsolved_easy": unsolved_easy_disp,
-        "solved_easy": json.loads(puzzle.solved_puzzle)
+        "solved_easy": json.loads(puzzle.solved_puzzle),
+        "passed_easy_test": passed_easy_test
     }
 
     # TODO: DELETE PUZZLES FROM DATABASE AFTER TEST
