@@ -5,36 +5,38 @@
 {% block content %}
 <center>
   <h3 style="display: block">Test solver</h3>
-
-  <h4 syle="display: block;">Easy</h4>
-
-  <div id="id_grid_easy_unsolved" class="grid">
-    {% for i in "012345678" %}
-      {% for j in "012345678" %}
-        <div class="number_slot">
-          <center>
-            <span style="position: absolute;">{{ unsolved_easy|return_item:i|return_item:j }}</span>
-          </center>
-        </div>
+  {% for key, value in tests.items %}
+  <div class="col-md-4">
+    <h4 syle="display: block;">{{ key|capfirst }}</h4>
+    <div id="id_grid_{{ key }}_unsolved" class="grid">
+      {% for i in "012345678" %}
+        {% for j in "012345678" %}
+          <div class="number_slot">
+            <center>
+              <span style="position: absolute;">{{ value.unsolved|return_item:i|return_item:j }}</span>
+            </center>
+          </div>
+        {% endfor %}
       {% endfor %}
-    {% endfor %}
-  </div>
-  <br>
-  <br>
-  <div id="id_grid_easy_solved" class="grid">
-    {% for i in "012345678" %}
-      {% for j in "012345678" %}
-        <div class="number_slot">
-          <center>
-            <span style="position: absolute;">{{ solved_easy|return_item:i|return_item:j }}</span>
-          </center>
-        </div>
+    </div>
+    <br>
+    <br>
+    <div id="id_grid_{{ key }}_solved" class="grid">
+      {% for i in "012345678" %}
+        {% for j in "012345678" %}
+          <div class="number_slot">
+            <center>
+              <span style="position: absolute;">{{ value.solved|return_item:i|return_item:j }}</span>
+            </center>
+          </div>
+        {% endfor %}
       {% endfor %}
-    {% endfor %}
+    </div>
+    <h4>
+      {{ key|capfirst }} test passed: {{ value.passed_test }}
+    </h4>
   </div>
-  <h4>
-    Easy test passed: {{ passed_easy_test }}
-  </h4>
+  {% endfor %}
 </center>
 
 {% endblock %}

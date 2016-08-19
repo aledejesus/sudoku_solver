@@ -31,10 +31,10 @@ class SudokuPuzzle(models.Model):
         #  MAIN SOLVING FLOW. CALL FUNCTIONS FROM HERE
         puzzle = json.loads(self.unsolved_puzzle)
         puzzle_cells_dict = {}
-        qty_vals_bef = len(utils.remove_zeroes(np.ravel(
-            puzzle).tolist()))  # known vals qty BEFORE running single_pos_algo
-        qty_vals_aft = 0  # known vals qty AFTER running single_pos_algo
-        first_run = True  # first time running single_pos_algo
+        qty_vals_bef = len(utils.remove_zeroes(np.ravel(puzzle).tolist()))
+        # known vals qty BEFORE running single_cand_algo
+        qty_vals_aft = 0  # known vals qty AFTER running single_cand_algo
+        first_run = True  # first time running single_cand_algo
 
         # if values were found run again
         while qty_vals_bef < qty_vals_aft or first_run:
@@ -43,7 +43,7 @@ class SudokuPuzzle(models.Model):
             for i in range(9):
                 for j in range(9):
                     if puzzle[i][j] == 0:
-                        puzzle, cell = self.single_pos_algo(
+                        puzzle, cell = self.single_cand_algo(
                             puzzle, i, j, first_run)
 
                         # add cell to PuzzleCells array
@@ -103,8 +103,8 @@ class SudokuPuzzle(models.Model):
         # np.ravel puts array values in a 1D list
         return utils.remove_zeroes(np.ravel(sqr).tolist())
 
-    # single position algorithm
-    def single_pos_algo(self, puzzle, i, j, first_run):
+    # single candidate algorithm
+    def single_cand_algo(self, puzzle, i, j, first_run):
         cell_poss = set(ALL_POSS)
         row = self.get_row(puzzle, i)
         col = self.get_col(puzzle, j)
@@ -151,6 +151,10 @@ class SudokuPuzzle(models.Model):
 
         cell.save()
         return puzzle, cell
+
+    # TODO: WRITE SINGLE POS ALGORITHM
+    # TODO: WRITE UPDATE CELL POSSIBILITIES RECURSIVE METHOD
+    # TODO: OVERRIDE __STR__ METHOD
 
 
 class PuzzleCell(models.Model):

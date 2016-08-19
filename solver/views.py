@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from .models import SudokuPuzzle
 import json
+from collections import OrderedDict
 
 
 def choose_method(request):
@@ -12,49 +13,63 @@ def input_numbers(request):
 
 
 def test_solver(request):
-    f = open('static/txt/test_easy.txt')
-    unsolved_easy_db = []
-    solved_easy_db = []
-    unsolved_easy_disp = []
-    f.readline()  # first line should contain 'UNSOLVED' so we skip it
+    tests = ['easy', 'medium']
+    unsolved_db = {}
+    solved_db = {}
+    unsolved_disp = {}
+    passed_test = {}
+    context = {}
+    context["tests"] = OrderedDict({})
 
-    for i in range(9):
-        row = f.readline()
-        row = row[0:-1]  # remove /n at the end
-        unsolved_easy_db.append([])
+    for test in tests:
+        f = open('static/txt/test_%s.txt' % test)
+        # sets key in this dictionaries to the name of the difficulty and the
+        # value as an empty puzzle
+        unsolved_db[test] = []
+        solved_db[test] = []
+        unsolved_disp[test] = []
+        f.readline()  # first line should contain 'UNSOLVED' so we skip it
 
-        for j in range(9):
-            unsolved_easy_db[i].append(int(row[j]))
+        for i in range(9):
+            row = f.readline()
+            row = row[0:-1]  # remove /n at the end
+            unsolved_db[test].append([])  # appends an empty row to
+            # the puzzle
 
-        row = row.replace('0', ' ')
-        unsolved_easy_disp.append(row)
+            for j in range(9):
+                unsolved_db[test][i].append(int(row[j]))
+                # appends a number to the row
 
-    f.readline()  # skips line with 'SOLVED' text
+            row = row.replace('0', ' ')
+            unsolved_disp[test].append(row)
 
-    for i in range(9):
-        row = f.readline()
-        row = row[0:-1]  # remove /n at the end
-        solved_easy_db.append([])
+        f.readline()  # skips line with 'SOLVED' text
 
-        for j in range(9):
-            solved_easy_db[i].append(int(row[j]))
+        for i in range(9):
+            row = f.readline()
+            row = row[0:-1]  # remove /n at the end
+            solved_db[test].append([])
 
-    f.close()
-    puzzle = SudokuPuzzle(unsolved_puzzle=json.dumps(unsolved_easy_db))
-    puzzle.save()
-    puzzle.solve()
+            for j in range(9):
+                solved_db[test][i].append(int(row[j]))
 
-    # TODO: research if this is the best way to compare solutions. STACKOVERF
-    if (json.dumps(solved_easy_db) == puzzle.solved_puzzle):
-        passed_easy_test = True
-    else:
-        passed_easy_test = False
+        f.close()
+        puzzle = SudokuPuzzle(unsolved_puzzle=json.dumps(unsolved_db[test]))
+        puzzle.save()
+        puzzle.solve()
 
-    context = {
-        "unsolved_easy": unsolved_easy_disp,
-        "solved_easy": json.loads(puzzle.solved_puzzle),
-        "passed_easy_test": passed_easy_test
-    }
+        # TODO: research if this is the best way to compare solutions. ST.OVERF
+        if puzzle.solved and \
+                json.dumps(solved_db[test]) == puzzle.solved_puzzle:
+            passed_test[test] = True
+        else:
+            passed_test[test] = False
+
+        context["tests"][test] = {
+            "unsolved": unsolved_disp[test],
+            "solved": json.loads(puzzle.solved_puzzle),
+            "passed_test": passed_test[test]
+        }
 
     # TODO: DELETE PUZZLES FROM DATABASE AFTER TEST
 
