@@ -4,6 +4,7 @@ import json
 from sets import ImmutableSet
 import numpy as np
 from sudoku_solver import utils
+from django.contrib.postgres.fields import ArrayField
 
 SQUARE_DEFS = (
     # (first_cell_row, first_cell_col, last_cell_row, last_cell_col) # SQR#
@@ -26,11 +27,14 @@ class SudokuPuzzle(models.Model):
         max_length=300, blank=True, null=False)  # json dump
     solved_puzzle = models.CharField(max_length=300)
     solved = models.BooleanField(default=False)
+    missing_vals_pos = ArrayField(
+        base_field=models.CharField(max_length=2),
+        blank=True, null=True, default=[])
 
     def solve(self):
-        #  MAIN SOLVING FLOW. CALL FUNCTIONS FROM HERE
+        #  MAIN SOLVING FLOW. CALL ALGO FUNCTIONS/METHODS FROM HERE
         puzzle = json.loads(self.unsolved_puzzle)
-        puzzle_cells_dict = {}
+        self = self.set_missing_vals_pos(puzzle)  # TODO: CHECK IF WORKING
         qty_vals_bef = len(utils.remove_zeroes(np.ravel(puzzle).tolist()))
         # known vals qty BEFORE running single_cand_algo
         qty_vals_aft = 0  # known vals qty AFTER running single_cand_algo
@@ -43,15 +47,12 @@ class SudokuPuzzle(models.Model):
             for i in range(9):
                 for j in range(9):
                     if puzzle[i][j] == 0:
-                        puzzle, cell = self.single_cand_algo(
-                            puzzle, i, j, first_run)
-
-                        # add cell to PuzzleCells array
-                        puzzle_cells_dict[cell.position] = cell
+                        puzzle = self.single_cand_algo(puzzle, i, j, first_run)
 
             first_run = False
             qty_vals_aft = len(utils.remove_zeroes(np.ravel(puzzle).tolist()))
 
+        # TODO: CALL SINGLE_POS_ALGO METHOD
         # TODO: put inside if len(puzzle) == 81:
         self.solved_puzzle = json.dumps(puzzle)
         self.solved = True
@@ -106,6 +107,7 @@ class SudokuPuzzle(models.Model):
     # single candidate algorithm
     def single_cand_algo(self, puzzle, i, j, first_run):
         cell_poss = set(ALL_POSS)
+        # TODO: REPLACE BY CALC_POSS CALL
         row = self.get_row(puzzle, i)
         col = self.get_col(puzzle, j)
         sqr = self.get_sqr(puzzle, i, j)
@@ -150,11 +152,27 @@ class SudokuPuzzle(models.Model):
                     list(cell_poss))
 
         cell.save()
-        return puzzle, cell
+        return puzzle
+
+    def set_missing_vals_pos(self, puzzle):
+        for i in range(9):
+            for j in range(9):
+                if puzzle[i][j] == 0:
+                    self.missing_vals_pos.append(str(i) + str(j))
+
+        return self
+
+    # single position algorithm
+    def single_pos_algo(self, puzzle, i, j):
+        # TODO: CALL CALC_POSS
+        pass
 
     # TODO: WRITE SINGLE POS ALGORITHM
     # TODO: WRITE UPDATE CELL POSSIBILITIES RECURSIVE METHOD
     # TODO: OVERRIDE __STR__ METHOD
+    # TODO: CHANGE UNSOLVED AND SOLVED PUZZLE FIELD TYPES BY ARRAYFIELD
+    # TODO: WRITE METHOD THAT TAKES A PUZZLE, I, J AND A STRING AND CALCULATES
+    #       THE POSSIBILITIES FOR THAT ROW, COL OR SQR (CALC_POSS)
 
 
 class PuzzleCell(models.Model):
