@@ -10,7 +10,7 @@ The purpose of this leisure project is to build a web app that lets users input 
 
 ### FAQs
 
-##### Q: Dude ... why?
+#### Q: Dude ... why?
 _**A:**_ Because I love sudoku, because I get frustrated often with difficult puzzles AND mainly because I want to improve my coding skills :D
 
 ### Contact
