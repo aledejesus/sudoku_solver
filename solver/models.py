@@ -104,17 +104,10 @@ class SudokuPuzzle(models.Model):
         # np.ravel puts array values in a 1D list
         return utils.remove_zeroes(np.ravel(sqr).tolist())
 
-    # single candidate algorithm
     def single_cand_algo(self, puzzle, i, j, first_run):
-        cell_poss = set(ALL_POSS)
-        # TODO: REPLACE BY CALC_POSS CALL
-        row = self.get_row(puzzle, i)
-        col = self.get_col(puzzle, j)
-        sqr = self.get_sqr(puzzle, i, j)
+        # single candidate algorithm
 
-        cell_poss = cell_poss.difference(set(row))
-        cell_poss = cell_poss.difference(set(col))
-        cell_poss = cell_poss.difference(set(sqr))
+        cell_poss = self.get_possibilities(puzzle, i, j)
 
         if len(cell_poss) <= 0 or len(cell_poss) > 9:
             pass
@@ -139,11 +132,14 @@ class SudokuPuzzle(models.Model):
             puzzle[i][j] = cell.value
 
         else:
+            # TODO: PUT AT THE BEGINNING OF METHOD SO GET_POSS CAN BE CALLED
             if first_run:
                 cell = PuzzleCell(
                     puzzle_pk=self.pk,
                     possibilities=json.dumps(list(cell_poss)),
                     position=str(i) + str(j))
+            # END TODO
+
             else:
                 cell = PuzzleCell.objects.get(
                     puzzle_pk=self.pk,
@@ -162,18 +158,48 @@ class SudokuPuzzle(models.Model):
 
         return self
 
-    # single position algorithm
     def single_pos_algo(self, puzzle, i, j):
-        # TODO: CALL CALC_POSS
+        # single position algorithm
+        # TODO: THINK THROUGH
+
+        # cell_poss = self.get_possibilities(puzzle, i, j)
+
+        # # TODO: LOOK FOR ANOTHER ALTERNATIVE (MAYBE CHANGE FOR LOOP)
+        # for poss in cell_poss:
+        #     qs = PuzzleCell.objects.filter(
+        #         puzzle_pk=self.pk, possibilities='[]',
+        #         position__startswith=str(i))
         pass
 
+    def get_possibilities(self, puzzle, i, j):
+        # returns all possibilities for a given cell
+        # TODO: THIS SHOULD BE A METHOD OF THE PUZZLE_CELL CLASS!! MODIFY
+
+        cell_poss = set(ALL_POSS)
+        row = self.get_row(puzzle, i)
+        col = self.get_col(puzzle, j)
+        sqr = self.get_sqr(puzzle, i, j)
+
+        cell_poss = cell_poss.difference(set(row))
+        cell_poss = cell_poss.difference(set(col))
+        cell_poss = cell_poss.difference(set(sqr))
+
+        return cell_poss
+
+    # TODO: CLEAN CODE AFTER SOLVING MEDIUM DIFF TEST
+    # TODO: MOVE GET_SQR, GET_COL, GET_ROW TO UTILS SO IT CAN BE USED IN OTHER
+    #       CLASSES (MANY CHANGES, MEDITATE)
     # TODO: WRITE SINGLE POS ALGORITHM
     # TODO: WRITE UPDATE CELL POSSIBILITIES RECURSIVE METHOD
     # TODO: OVERRIDE __STR__ METHOD
     # TODO: CHANGE UNSOLVED AND SOLVED PUZZLE FIELD TYPES BY ARRAYFIELD
     # TODO: WRITE METHOD THAT TAKES A PUZZLE, I, J AND A STRING AND CALCULATES
     #       THE POSSIBILITIES FOR THAT ROW, COL OR SQR (CALC_POSS)
-
+    # TODO: SINGLE_CAND_ALGO IS ALSO UPDATING THE POSSIBILITIES. CHECK HOW I
+    #       CAN SEPARATE THOSE TWO PROCESSES. ONCE I FIND ONE OR MULTIPLE
+    #       VALUES USING A CERTAIN ALGO I CAN UPDATE THE POSS IN A METHOD. IN
+    #       ANOTHER METHOD I CAN RUN A QUERY TO SEE IF THERE ARE ANY CELLS WITH
+    #       ONLY ONE POSSIBILITY
 
 class PuzzleCell(models.Model):
     puzzle_pk = models.IntegerField()
@@ -185,3 +211,5 @@ class PuzzleCell(models.Model):
 
     def __str__(self):
         return str(self.value)
+
+    # TODO: CHANGE POSITION FOR X, Y INTEGERS
