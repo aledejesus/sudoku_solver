@@ -118,13 +118,11 @@ class SudokuPuzzle(models.Model):
             # get PuzzleCell if not
             if first_run:
                 cell = PuzzleCell(
-                    puzzle_pk=self.pk,
-                    value=list(cell_poss)[0], filled=True,
-                    position=str(i) + str(j))
+                    puzzle_pk=self.pk, value=list(cell_poss)[0], filled=True,
+                    row=i, col=j)
             else:
                 cell = PuzzleCell.objects.get(
-                    puzzle_pk=self.pk,
-                    position=str(i) + str(j))
+                    puzzle_pk=self.pk, row=i, col=j)
                 cell.value = list(cell_poss)[0]
                 cell.filled = True
 
@@ -137,13 +135,12 @@ class SudokuPuzzle(models.Model):
                 cell = PuzzleCell(
                     puzzle_pk=self.pk,
                     possibilities=json.dumps(list(cell_poss)),
-                    position=str(i) + str(j))
+                    row=i, col=j)
             # END TODO
 
             else:
                 cell = PuzzleCell.objects.get(
-                    puzzle_pk=self.pk,
-                    position=str(i) + str(j))
+                    puzzle_pk=self.pk, row=i, col=j)
                 cell.possibilities = json.dumps(
                     list(cell_poss))
 
@@ -200,6 +197,8 @@ class SudokuPuzzle(models.Model):
     #       VALUES USING A CERTAIN ALGO I CAN UPDATE THE POSS IN A METHOD. IN
     #       ANOTHER METHOD I CAN RUN A QUERY TO SEE IF THERE ARE ANY CELLS WITH
     #       ONLY ONE POSSIBILITY
+    # TODO: FIX BUG. NOT ALL PUZZLE CELLS ARE BEING CREATED.
+
 
 class PuzzleCell(models.Model):
     puzzle_pk = models.IntegerField()
@@ -207,9 +206,9 @@ class PuzzleCell(models.Model):
     possibilities = models.CharField(
         default='[]', max_length=50, blank=True, null=True)
     filled = models.BooleanField(default=False)
-    position = models.CharField(max_length=2, blank=True, null=True)
+    # position = models.CharField(max_length=2, blank=True, null=True)
+    row = models.IntegerField(default=-1, blank=True)
+    col = models.IntegerField(default=-1, blank=True)
 
     def __str__(self):
-        return str(self.value)
-
-    # TODO: CHANGE POSITION FOR X, Y INTEGERS
+        return "v:%i - r:%i - c:%i" % (self.value, self.row, self.col)
