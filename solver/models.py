@@ -46,8 +46,8 @@ class SudokuPuzzle(models.Model):
 
             for i in range(9):
                 for j in range(9):
-                    if puzzle[i][j] == 0:
-                        puzzle = self.single_cand_algo(puzzle, i, j, first_run)
+                    # all cells are created
+                    puzzle = self.single_cand_algo(puzzle, i, j, first_run)
 
             first_run = False
             qty_vals_aft = len(utils.remove_zeroes(np.ravel(puzzle).tolist()))
@@ -106,6 +106,9 @@ class SudokuPuzzle(models.Model):
 
     def single_cand_algo(self, puzzle, i, j, first_run):
         # single candidate algorithm
+
+        # TODO: SEPARATE IN 3 METHODS: CREATE PUZZLECELLS, UPDATE AND
+        #       SINGLE_CAND_aLGO
 
         cell_poss = self.get_possibilities(puzzle, i, j)
 
@@ -210,7 +213,6 @@ class PuzzleCell(models.Model):
     possibilities = models.CharField(
         default='[]', max_length=50, blank=True, null=True)
     filled = models.BooleanField(default=False)
-    # position = models.CharField(max_length=2, blank=True, null=True)
     row = models.IntegerField(default=-1, blank=True)
     col = models.IntegerField(default=-1, blank=True)
 
