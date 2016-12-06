@@ -52,8 +52,6 @@ class SudokuPuzzle(models.Model):
             first_run = False
             qty_vals_aft = len(utils.remove_zeroes(np.ravel(puzzle).tolist()))
 
-        # TODO: CALL SINGLE_POS_ALGO METHOD
-        # TODO: put inside if len(puzzle) == 81:
         self.solved_puzzle = json.dumps(puzzle)
         self.solved = True
         self.save()
@@ -91,9 +89,7 @@ class SudokuPuzzle(models.Model):
             sqr_boundaries[3] = 8
 
         # assert that sqr is valid
-        # TODO: move this to unit tests ???
         if (tuple(sqr_boundaries) not in SQUARE_DEFS):
-            # TODO: raise exception
             pass
 
         np_arr = np.array(arr)
@@ -107,14 +103,10 @@ class SudokuPuzzle(models.Model):
     def single_cand_algo(self, puzzle, i, j, first_run):
         # single candidate algorithm
 
-        # TODO: SEPARATE IN 3 METHODS: CREATE PUZZLECELLS, UPDATE AND
-        #       SINGLE_CAND_aLGO
-
         cell_poss = self.get_possibilities(puzzle, i, j)
 
         if len(cell_poss) <= 0 or len(cell_poss) > 9:
             pass
-            # TODO: raise exception
 
         elif len(cell_poss) == 1:
             # create PuzzleCell if first time algo is run
@@ -133,13 +125,11 @@ class SudokuPuzzle(models.Model):
             puzzle[i][j] = cell.value
 
         else:
-            # TODO: PUT AT THE BEGINNING OF METHOD SO GET_POSS CAN BE CALLED
             if first_run:
                 cell = PuzzleCell(
                     puzzle_pk=self.pk,
                     possibilities=json.dumps(list(cell_poss)),
                     row=i, col=j)
-            # END TODO
 
             else:
                 cell = PuzzleCell.objects.get(
@@ -160,11 +150,9 @@ class SudokuPuzzle(models.Model):
 
     def single_pos_algo(self, puzzle, i, j):
         # single position algorithm
-        # TODO: THINK THROUGH
 
         # cell_poss = self.get_possibilities(puzzle, i, j)
 
-        # # TODO: LOOK FOR ANOTHER ALTERNATIVE (MAYBE CHANGE FOR LOOP)
         # for poss in cell_poss:
         #     qs = PuzzleCell.objects.filter(
         #         puzzle_pk=self.pk, possibilities='[]',
@@ -173,7 +161,6 @@ class SudokuPuzzle(models.Model):
 
     def get_possibilities(self, puzzle, i, j):
         # returns all possibilities for a given cell
-        # TODO: THIS SHOULD BE A METHOD OF THE PUZZLE_CELL CLASS!! MODIFY
 
         cell_poss = set(ALL_POSS)
         row = self.get_row(puzzle, i)
@@ -185,26 +172,6 @@ class SudokuPuzzle(models.Model):
         cell_poss = cell_poss.difference(set(sqr))
 
         return cell_poss
-
-    # TODO: CLEAN CODE AFTER SOLVING MEDIUM DIFF TEST
-    # TODO: MOVE GET_SQR, GET_COL, GET_ROW TO UTILS SO IT CAN BE USED IN OTHER
-    #       CLASSES (MANY CHANGES, MEDITATE)
-    # TODO: WRITE SINGLE POS ALGORITHM
-    # TODO: WRITE UPDATE CELL POSSIBILITIES RECURSIVE METHOD
-    # TODO: OVERRIDE __STR__ METHOD
-    # TODO: CHANGE UNSOLVED AND SOLVED PUZZLE FIELD TYPES BY ARRAYFIELD
-    # TODO: WRITE METHOD THAT TAKES A PUZZLE, I, J AND A STRING AND CALCULATES
-    #       THE POSSIBILITIES FOR THAT ROW, COL OR SQR (CALC_POSS)
-    # TODO: SINGLE_CAND_ALGO IS ALSO UPDATING THE POSSIBILITIES. CHECK HOW I
-    #       CAN SEPARATE THOSE TWO PROCESSES. ONCE I FIND ONE OR MULTIPLE
-    #       VALUES USING A CERTAIN ALGO I CAN UPDATE THE POSS IN A METHOD. IN
-    #       ANOTHER METHOD I CAN RUN A QUERY TO SEE IF THERE ARE ANY CELLS WITH
-    #       ONLY ONE POSSIBILITY
-    # TODO: FIX BUG. NOT ALL PUZZLE CELLS ARE BEING CREATED. THIS IS BECAUSE
-    #       THE WAY THE SOLVE METHOD IS IMPLEMENTED ONLY THE MISSING PUZZLE
-    #       CELLS GET TO BE CREATED. THINK IF YOU CAN WORK LIKE THIS OR IF IT
-    #       WOULD BE BETTER TO CREATE ALL PUZZLE CELLS EVEN IF THEIR VALUE IS
-    #       KNOWN.
 
 
 class PuzzleCell(models.Model):
