@@ -54,7 +54,7 @@ def test_solver(request):
                 solved_db[test][i].append(int(row[j]))
 
         f.close()
-        puzzle = SudokuPuzzle(unsolved_puzzle=json.dumps(unsolved_db[test]))
+        puzzle = SudokuPuzzle(unsolved_puzzle=unsolved_db[test])
         puzzle.save()
         puzzle.solve()
 
