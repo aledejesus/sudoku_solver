@@ -23,9 +23,16 @@ ALL_POSS = ImmutableSet([1, 2, 3, 4, 5, 6, 7, 8, 9])  # all possibilities
 
 
 class SudokuPuzzle(models.Model):
-    unsolved_puzzle = models.CharField(
-        max_length=300, blank=True, null=False)  # json dump
-    solved_puzzle = models.CharField(max_length=300)
+    unsolved_puzzle = ArrayField(
+        base_field=ArrayField(
+            base_field=models.IntegerField(), size=9),
+        size=9)
+
+    solved_puzzle = ArrayField(
+        base_field=ArrayField(
+            base_field=models.IntegerField(), size=9, blank=True, null=True,
+            default=[]),
+        size=9, blank=True, null=True, default=[])
     solved = models.BooleanField(default=False)
     missing_vals_pos = ArrayField(
         base_field=models.CharField(max_length=2),
@@ -33,37 +40,40 @@ class SudokuPuzzle(models.Model):
 
     def solve(self):
         #  MAIN SOLVING FLOW. CALL ALGO FUNCTIONS/METHODS FROM HERE
-        puzzle = json.loads(self.unsolved_puzzle)
-        self = self.set_missing_vals_pos(puzzle)  # TODO: CHECK IF WORKING
-        qty_vals_bef = len(utils.remove_zeroes(np.ravel(puzzle).tolist()))
+        self.solved_puzzle = self.unsolved_puzzle
+        self.set_missing_vals_pos()
+        # TODO: CHECK IF WORKING
+        qty_vals_bef = len(utils.remove_zeroes(
+            np.ravel(self.solved_puzzle).tolist()))
         # known vals qty BEFORE running single_cand_algo
         qty_vals_aft = 0  # known vals qty AFTER running single_cand_algo
         first_run = True  # first time running single_cand_algo
 
         # if values were found run again
         while qty_vals_bef < qty_vals_aft or first_run:
-            qty_vals_bef = len(utils.remove_zeroes(np.ravel(puzzle).tolist()))
+            qty_vals_bef = len(utils.remove_zeroes(
+                np.ravel(self.solved_puzzle).tolist()))
 
             for i in range(9):
                 for j in range(9):
                     # all cells are created
-                    puzzle = self.single_cand_algo(puzzle, i, j, first_run)
+                    self.single_cand_algo(i, j, first_run)
 
             first_run = False
-            qty_vals_aft = len(utils.remove_zeroes(np.ravel(puzzle).tolist()))
+            qty_vals_aft = len(utils.remove_zeroes(
+                np.ravel(self.solved_puzzle).tolist()))
 
-        self.solved_puzzle = json.dumps(puzzle)
         self.solved = True
         self.save()
 
-    def get_row(self, arr, i):
-        return utils.remove_zeroes(arr[i])
+    def get_row(self, i):
+        return utils.remove_zeroes(self.solved_puzzle[i])
 
-    def get_col(self, arr, j):
-        np_arr = np.array(arr)
+    def get_col(self, j):
+        np_arr = np.array(self.solved_puzzle)
         return utils.remove_zeroes(np_arr[:, j].tolist())
 
-    def get_sqr(self, arr, i, j):
+    def get_sqr(self, i, j):
         sqr_boundaries = [0, 0, 0, 0]
 
         # get square row boundaries
@@ -92,7 +102,7 @@ class SudokuPuzzle(models.Model):
         if (tuple(sqr_boundaries) not in SQUARE_DEFS):
             pass
 
-        np_arr = np.array(arr)
+        np_arr = np.array(self.solved_puzzle)
         sqr = np_arr[
             sqr_boundaries[0]:sqr_boundaries[2]+1,
             sqr_boundaries[1]:sqr_boundaries[3]+1]
@@ -100,10 +110,10 @@ class SudokuPuzzle(models.Model):
         # np.ravel puts array values in a 1D list
         return utils.remove_zeroes(np.ravel(sqr).tolist())
 
-    def single_cand_algo(self, puzzle, i, j, first_run):
+    def single_cand_algo(self, i, j, first_run):
         # single candidate algorithm
 
-        cell_poss = self.get_possibilities(puzzle, i, j)
+        cell_poss = self.get_possibilities(i, j)
 
         if len(cell_poss) <= 0 or len(cell_poss) > 9:
             pass
@@ -122,7 +132,7 @@ class SudokuPuzzle(models.Model):
                 cell.filled = True
 
             # add value to puzzle if found
-            puzzle[i][j] = cell.value
+            self.solved_puzzle[i][j] = cell.value
 
         else:
             if first_run:
@@ -138,17 +148,14 @@ class SudokuPuzzle(models.Model):
                     list(cell_poss))
 
         cell.save()
-        return puzzle
 
-    def set_missing_vals_pos(self, puzzle):
+    def set_missing_vals_pos(self):
         for i in range(9):
             for j in range(9):
-                if puzzle[i][j] == 0:
+                if self.solved_puzzle[i][j] == 0:
                     self.missing_vals_pos.append(str(i) + str(j))
 
-        return self
-
-    def single_pos_algo(self, puzzle, i, j):
+    def single_pos_algo(self, i, j):
         # single position algorithm
 
         # cell_poss = self.get_possibilities(puzzle, i, j)
@@ -159,17 +166,22 @@ class SudokuPuzzle(models.Model):
         #         position__startswith=str(i))
         pass
 
-    def get_possibilities(self, puzzle, i, j):
+    def get_possibilities(self, i, j):
         # returns all possibilities for a given cell
 
-        cell_poss = set(ALL_POSS)
-        row = self.get_row(puzzle, i)
-        col = self.get_col(puzzle, j)
-        sqr = self.get_sqr(puzzle, i, j)
+        if self.solved_puzzle[i][j] != 0:
+            cell_poss = set()
+            cell_poss.add(self.solved_puzzle[i][j])
 
-        cell_poss = cell_poss.difference(set(row))
-        cell_poss = cell_poss.difference(set(col))
-        cell_poss = cell_poss.difference(set(sqr))
+        else:
+            cell_poss = set(ALL_POSS)
+            row = self.get_row(i)
+            col = self.get_col(j)
+            sqr = self.get_sqr(i, j)
+
+            cell_poss = cell_poss.difference(set(row))
+            cell_poss = cell_poss.difference(set(col))
+            cell_poss = cell_poss.difference(set(sqr))
 
         return cell_poss
 
