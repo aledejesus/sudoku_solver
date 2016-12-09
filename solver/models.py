@@ -53,7 +53,7 @@ class SudokuPuzzle(models.Model):
 
             for i in range(9):
                 for j in range(9):
-                    if self.solved_puzzle != 0:
+                    if self.solved_puzzle[i][j] == 0:
                         cell_poss = self.get_possibilities(i, j)
 
                         if len(cell_poss) <= 0 or len(cell_poss) > 9:
