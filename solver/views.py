@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from .models import SudokuPuzzle
-import json
 from collections import OrderedDict
+import numpy as np
 
 
 def choose_method(request):
@@ -58,16 +58,15 @@ def test_solver(request):
         puzzle.save()
         puzzle.solve()
 
-        # TODO: research if this is the best way to compare solutions. ST.OVERF
         if puzzle.solved and \
-                json.dumps(solved_db[test]) == puzzle.solved_puzzle:
+                np.array_equal(solved_db[test], puzzle.solved_puzzle):
             passed_test[test] = True
         else:
             passed_test[test] = False
 
         context["tests"][test] = {
             "unsolved": unsolved_disp[test],
-            "solved": json.loads(puzzle.solved_puzzle),
+            "solved": puzzle.solved_puzzle,
             "passed_test": passed_test[test]
         }
 

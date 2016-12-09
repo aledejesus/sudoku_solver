@@ -169,14 +169,19 @@ class SudokuPuzzle(models.Model):
     def get_possibilities(self, i, j):
         # returns all possibilities for a given cell
 
-        cell_poss = set(ALL_POSS)
-        row = self.get_row(i)
-        col = self.get_col(j)
-        sqr = self.get_sqr(i, j)
+        if self.solved_puzzle[i][j] != 0:
+            cell_poss = set()
+            cell_poss.add(self.solved_puzzle[i][j])
 
-        cell_poss = cell_poss.difference(set(row))
-        cell_poss = cell_poss.difference(set(col))
-        cell_poss = cell_poss.difference(set(sqr))
+        else:
+            cell_poss = set(ALL_POSS)
+            row = self.get_row(i)
+            col = self.get_col(j)
+            sqr = self.get_sqr(i, j)
+
+            cell_poss = cell_poss.difference(set(row))
+            cell_poss = cell_poss.difference(set(col))
+            cell_poss = cell_poss.difference(set(sqr))
 
         return cell_poss
 
