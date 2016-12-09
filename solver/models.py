@@ -53,16 +53,17 @@ class SudokuPuzzle(models.Model):
 
             for i in range(9):
                 for j in range(9):
-                    cell_poss = self.get_possibilities(i, j)
+                    if self.solved_puzzle != 0:
+                        cell_poss = self.get_possibilities(i, j)
 
-                    if len(cell_poss) <= 0 or len(cell_poss) > 9:
-                        pass
+                        if len(cell_poss) <= 0 or len(cell_poss) > 9:
+                            pass
 
-                    elif len(cell_poss) == 1:
-                        self.single_cand_algo(i, j, cell_poss)
+                        elif len(cell_poss) == 1:
+                            self.single_cand_algo(i, j, cell_poss)
 
-                    else:
-                        self.update_possibilities(i, j, cell_poss)
+                        else:
+                            self.update_possibilities(i, j, cell_poss)
 
             qty_vals_aft = len(utils.remove_zeroes(
                 np.ravel(self.solved_puzzle).tolist()))
