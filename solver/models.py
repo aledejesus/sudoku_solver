@@ -19,7 +19,7 @@ SQUARE_DEFS = (
     (6, 6, 8, 8)  # SQR8
 )
 
-ALL_POSS = ImmutableSet([1, 2, 3, 4, 5, 6, 7, 8, 9])  # all possibilities
+ALL_POSS = ImmutableSet(range(1, 10))  # all possibilities
 
 
 class SudokuPuzzle(models.Model):
