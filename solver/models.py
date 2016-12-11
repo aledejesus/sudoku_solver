@@ -42,26 +42,34 @@ class SudokuPuzzle(models.Model):
         #  MAIN SOLVING FLOW. CALL ALGO FUNCTIONS/METHODS FROM HERE
         self.solved_puzzle = self.unsolved_puzzle
         self.set_missing_vals_pos()
-        # TODO: CHECK IF WORKING
-        qty_vals_bef = len(utils.remove_zeroes(
-            np.ravel(self.solved_puzzle).tolist()))
-        # known vals qty BEFORE running single_cand_algo
-        qty_vals_aft = 0  # known vals qty AFTER running single_cand_algo
-        first_run = True  # first time running single_cand_algo
+        self.create_puzzle_cells()
+        run_again = True
 
         # if values were found run again
-        while qty_vals_bef < qty_vals_aft or first_run:
+        while run_again:
             qty_vals_bef = len(utils.remove_zeroes(
                 np.ravel(self.solved_puzzle).tolist()))
+            # known vals qty BEFORE running single_cand_algo
 
             for i in range(9):
                 for j in range(9):
-                    # all cells are created
-                    self.single_cand_algo(i, j, first_run)
+                    if self.solved_puzzle[i][j] == 0:
+                        cell_poss = self.get_possibilities(i, j)
 
-            first_run = False
+                        if len(cell_poss) <= 0 or len(cell_poss) > 9:
+                            pass
+
+                        elif len(cell_poss) == 1:
+                            self.single_cand_algo(i, j, cell_poss)
+
+                        else:
+                            self.update_possibilities(i, j, cell_poss)
+
             qty_vals_aft = len(utils.remove_zeroes(
                 np.ravel(self.solved_puzzle).tolist()))
+            # known vals qty AFTER running single_cand_algo
+
+            run_again = qty_vals_bef < qty_vals_aft
 
         self.solved = True
         self.save()
@@ -110,42 +118,43 @@ class SudokuPuzzle(models.Model):
         # np.ravel puts array values in a 1D list
         return utils.remove_zeroes(np.ravel(sqr).tolist())
 
-    def single_cand_algo(self, i, j, first_run):
+    def create_puzzle_cells(self):
+        for i in range(9):
+            for j in range(9):
+                cell_poss = self.get_possibilities(i, j)
+
+                if len(cell_poss) <= 0 or len(cell_poss) > 9:
+                    pass
+
+                elif len(cell_poss) == 1:
+                    cell = PuzzleCell(
+                        puzzle_pk=self.pk, value=list(cell_poss)[0],
+                        filled=True, row=i, col=j)
+
+                else:
+                    cell = PuzzleCell(
+                        puzzle_pk=self.pk,
+                        possibilities=json.dumps(list(cell_poss)),
+                        row=i, col=j)
+
+                cell.save()
+
+    def single_cand_algo(self, i, j, cell_poss):
         # single candidate algorithm
 
-        cell_poss = self.get_possibilities(i, j)
+        cell = PuzzleCell.objects.get(
+            puzzle_pk=self.pk, row=i, col=j)
+        cell.value = list(cell_poss)[0]
+        cell.filled = True
+        self.solved_puzzle[i][j] = cell.value  # add value to puzzle if found
 
-        if len(cell_poss) <= 0 or len(cell_poss) > 9:
-            pass
+        cell.save()
 
-        elif len(cell_poss) == 1:
-            # create PuzzleCell if first time algo is run
-            # get PuzzleCell if not
-            if first_run:
-                cell = PuzzleCell(
-                    puzzle_pk=self.pk, value=list(cell_poss)[0], filled=True,
-                    row=i, col=j)
-            else:
-                cell = PuzzleCell.objects.get(
-                    puzzle_pk=self.pk, row=i, col=j)
-                cell.value = list(cell_poss)[0]
-                cell.filled = True
-
-            # add value to puzzle if found
-            self.solved_puzzle[i][j] = cell.value
-
-        else:
-            if first_run:
-                cell = PuzzleCell(
-                    puzzle_pk=self.pk,
-                    possibilities=json.dumps(list(cell_poss)),
-                    row=i, col=j)
-
-            else:
-                cell = PuzzleCell.objects.get(
-                    puzzle_pk=self.pk, row=i, col=j)
-                cell.possibilities = json.dumps(
-                    list(cell_poss))
+    def update_possibilities(self, i, j, cell_poss):
+        cell = PuzzleCell.objects.get(
+            puzzle_pk=self.pk, row=i, col=j)
+        cell.possibilities = json.dumps(
+            list(cell_poss))
 
         cell.save()
 
