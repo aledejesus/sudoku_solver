@@ -121,7 +121,13 @@ class SudokuPuzzle(models.Model):
     def create_puzzle_cells(self):
         for i in range(9):
             for j in range(9):
-                cell_poss = self.get_possibilities(i, j)
+
+                if self.solved_puzzle[i][j] != 0:
+                    cell_poss = set()
+                    cell_poss.add(self.solved_puzzle[i][j])
+
+                else:
+                    cell_poss = self.get_possibilities(i, j)
 
                 if len(cell_poss) <= 0 or len(cell_poss) > 9:
                     pass
@@ -178,19 +184,14 @@ class SudokuPuzzle(models.Model):
     def get_possibilities(self, i, j):
         # returns all possibilities for a given cell
 
-        if self.solved_puzzle[i][j] != 0:
-            cell_poss = set()
-            cell_poss.add(self.solved_puzzle[i][j])
+        cell_poss = set(ALL_POSS)
+        row = self.get_row(i)
+        col = self.get_col(j)
+        sqr = self.get_sqr(i, j)
 
-        else:
-            cell_poss = set(ALL_POSS)
-            row = self.get_row(i)
-            col = self.get_col(j)
-            sqr = self.get_sqr(i, j)
-
-            cell_poss = cell_poss.difference(set(row))
-            cell_poss = cell_poss.difference(set(col))
-            cell_poss = cell_poss.difference(set(sqr))
+        cell_poss = cell_poss.difference(set(row))
+        cell_poss = cell_poss.difference(set(col))
+        cell_poss = cell_poss.difference(set(sqr))
 
         return cell_poss
 
