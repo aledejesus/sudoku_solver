@@ -3,6 +3,7 @@ from factories import SudokuPuzzleFactory
 import numpy as np
 from . import models
 from sudoku_solver import utils
+import json
 
 
 class SudokuPuzzleTestCase(TestCase):
@@ -56,3 +57,43 @@ class SudokuPuzzleTestCase(TestCase):
             self.assertFalse(first_cell.filled)
         else:
             self.assertTrue(first_cell.filled)
+
+    def test_single_cand_algo(self):
+        i = 0
+        j = 0
+        expected_val = 9
+        self.puzzle.create_puzzle_cells()
+        self.puzzle.solved_puzzle[0] = [0, 3, 6, 7, 5, 1, 4, 2, 8]
+        self.puzzle.save()
+        first_cell = models.PuzzleCell.objects.get(
+            puzzle_pk=self.puzzle.pk, row=i, col=j)
+        self.assertFalse(first_cell.filled)
+        self.assertEqual(first_cell.value, 0)
+
+        cell_poss = self.puzzle.get_possibilities(i, j)
+        self.puzzle.single_cand_algo(i, j, cell_poss)
+        first_cell = models.PuzzleCell.objects.get(
+            puzzle_pk=self.puzzle.pk, row=i, col=j)
+        self.assertTrue(first_cell.filled)
+        self.assertEqual(first_cell.value, expected_val)
+
+    def test_update_possibilities(self):
+        i = 0
+        j = 0
+        exp_poss = [3, 5, 9]  # expected possibilities
+        import pdb; pdb.set_trace()
+        self.puzzle.create_puzzle_cells()
+        first_cell = models.PuzzleCell.objects.get(
+            puzzle_pk=self.puzzle.pk, row=i, col=j)
+        self.assertEqual(len(set(exp_poss).difference(
+            set(json.loads(first_cell.possibilities)))), 0)
+
+        exp_poss = [3, 6]
+        self.puzzle.solved_puzzle[0] = [0, 0, 0, 7, 5, 1, 4, 2, 8]
+        self.puzzle.save()
+        cell_poss = self.puzzle.get_possibilities(i, j)
+        self.puzzle.update_possibilities(i, j, cell_poss)
+        first_cell = models.PuzzleCell.objects.get(
+            puzzle_pk=self.puzzle.pk, row=i, col=j)
+        self.assertEqual(len(set(exp_poss).difference(
+            set(json.loads(first_cell.possibilities)))), 0)
