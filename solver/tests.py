@@ -11,6 +11,7 @@ class SudokuPuzzleTestCase(TestCase):
         self.puzzle = SudokuPuzzleFactory()
         self.puzzle.solved_puzzle = self.puzzle.unsolved_puzzle
         self.puzzle.save()
+        self.puzzle.refresh_from_db()
 
     def test_solve(self):
         self.assertFalse(self.puzzle.solved)
@@ -81,19 +82,30 @@ class SudokuPuzzleTestCase(TestCase):
         i = 0
         j = 0
         exp_poss = [3, 5, 9]  # expected possibilities
-        import pdb; pdb.set_trace()
         self.puzzle.create_puzzle_cells()
         first_cell = models.PuzzleCell.objects.get(
             puzzle_pk=self.puzzle.pk, row=i, col=j)
         self.assertEqual(len(set(exp_poss).difference(
             set(json.loads(first_cell.possibilities)))), 0)
 
-        exp_poss = [3, 6]
+        exp_poss = [3, 9]
         self.puzzle.solved_puzzle[0] = [0, 0, 0, 7, 5, 1, 4, 2, 8]
-        self.puzzle.save()
         cell_poss = self.puzzle.get_possibilities(i, j)
         self.puzzle.update_possibilities(i, j, cell_poss)
         first_cell = models.PuzzleCell.objects.get(
             puzzle_pk=self.puzzle.pk, row=i, col=j)
         self.assertEqual(len(set(exp_poss).difference(
             set(json.loads(first_cell.possibilities)))), 0)
+
+    def test_set_missing_vals_pos(self):
+        self.assertEqual(len(self.puzzle.missing_vals_pos), 0)
+
+        self.puzzle.set_missing_vals_pos()
+        self.assertEqual(len(self.puzzle.missing_vals_pos), 46)
+
+    def test_get_possibilities(self):
+        i = 0
+        j = 0
+        exp_poss = [3, 5, 9]  # expected possibilities
+        cell_poss = self.puzzle.get_possibilities(i, j)
+        self.assertEqual(len(set(exp_poss).difference(set(cell_poss))), 0)
