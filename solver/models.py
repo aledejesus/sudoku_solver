@@ -56,10 +56,7 @@ class SudokuPuzzle(models.Model):
                     if self.solved_puzzle[i][j] == 0:
                         cell_poss = self.get_possibilities(i, j)
 
-                        if len(cell_poss) <= 0 or len(cell_poss) > 9:
-                            pass
-
-                        elif len(cell_poss) == 1:
+                        if len(cell_poss) == 1:
                             self.single_cand_algo(i, j, cell_poss)
 
                         else:
@@ -129,14 +126,10 @@ class SudokuPuzzle(models.Model):
                 else:
                     cell_poss = self.get_possibilities(i, j)
 
-                if len(cell_poss) <= 0 or len(cell_poss) > 9:
-                    pass
-
-                else:
-                    cell = PuzzleCell(
-                        puzzle_pk=self.pk,
-                        possibilities=json.dumps(list(cell_poss)),
-                        row=i, col=j)
+                cell = PuzzleCell(
+                    puzzle_pk=self.pk,
+                    possibilities=json.dumps(list(cell_poss)),
+                    row=i, col=j)
 
                 cell.save()
 
@@ -186,6 +179,9 @@ class SudokuPuzzle(models.Model):
         cell_poss = cell_poss.difference(set(row))
         cell_poss = cell_poss.difference(set(col))
         cell_poss = cell_poss.difference(set(sqr))
+
+        if len(cell_poss) < 1 or len(cell_poss) > 9:
+            raise Exception("Invalid number of possibilities")
 
         return cell_poss
 
