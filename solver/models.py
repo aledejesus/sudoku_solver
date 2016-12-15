@@ -132,11 +132,6 @@ class SudokuPuzzle(models.Model):
                 if len(cell_poss) <= 0 or len(cell_poss) > 9:
                     pass
 
-                elif len(cell_poss) == 1:
-                    cell = PuzzleCell(
-                        puzzle_pk=self.pk, value=list(cell_poss)[0],
-                        filled=True, row=i, col=j)
-
                 else:
                     cell = PuzzleCell(
                         puzzle_pk=self.pk,
@@ -170,7 +165,7 @@ class SudokuPuzzle(models.Model):
                 if self.solved_puzzle[i][j] == 0:
                     self.missing_vals_pos.append(str(i) + str(j))
 
-    def single_pos_algo(self, i, j):
+    # def single_pos_algo(self, i, j):
         # single position algorithm
 
         # cell_poss = self.get_possibilities(puzzle, i, j)
@@ -179,7 +174,6 @@ class SudokuPuzzle(models.Model):
         #     qs = PuzzleCell.objects.filter(
         #         puzzle_pk=self.pk, possibilities='[]',
         #         position__startswith=str(i))
-        pass
 
     def get_possibilities(self, i, j):
         # returns all possibilities for a given cell
