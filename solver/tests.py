@@ -109,3 +109,10 @@ class SudokuPuzzleTestCase(TestCase):
         exp_poss = [3, 5, 9]  # expected possibilities
         cell_poss = self.puzzle.get_possibilities(i, j)
         self.assertEqual(len(set(exp_poss).difference(set(cell_poss))), 0)
+
+    def test_get_possibilities_raises_exception(self):
+        i = 0
+        j = 0
+        self.puzzle.solved_puzzle[i] = [9, 3, 6, 7, 5, 1, 4, 2, 8]
+        with self.assertRaises(Exception):
+            self.puzzle.get_possibilities(i, j)
