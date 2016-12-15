@@ -108,7 +108,7 @@ class SudokuPuzzle(models.Model):
 
         # assert that sqr is valid
         if (tuple(sqr_boundaries) not in SQUARE_DEFS):
-            pass
+            raise Exception("Invalid square")
 
         np_arr = np.array(self.solved_puzzle)
         sqr = np_arr[

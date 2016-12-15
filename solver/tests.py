@@ -35,10 +35,14 @@ class SudokuPuzzleTestCase(TestCase):
         actual_col = self.puzzle.get_col(0)
         self.assertTrue(np.array_equal(expected_col, actual_col))
 
-    def test_get_sqr(self):
+    def test_get_sqr_with_valid_cell(self):
         expected_sqr = [7, 1, 4, 2]
         actual_sqr = self.puzzle.get_sqr(0, 0)
         self.assertTrue(np.array_equal(expected_sqr, actual_sqr))
+
+    def test_get_sqr_with_invalid_cell(self):
+        with self.assertRaises(Exception):
+            self.puzzle.get_sqr(-1, -1)
 
     def test_create_puzzle_cells(self):
         cells = models.PuzzleCell.objects.filter(puzzle_pk=self.puzzle.pk)
