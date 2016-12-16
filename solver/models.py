@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 from django.db import models
-import json
 from sets import ImmutableSet
 import numpy as np
 from sudoku_solver import utils
@@ -131,7 +130,7 @@ class SudokuPuzzle(models.Model):
 
                 cell = PuzzleCell(
                     puzzle_pk=self.pk,
-                    possibilities=json.dumps(list(cell_poss)),
+                    possibilities=list(cell_poss),
                     row=i, col=j)
 
                 cell.save()
@@ -150,8 +149,7 @@ class SudokuPuzzle(models.Model):
     def update_possibilities(self, i, j, cell_poss):
         cell = PuzzleCell.objects.get(
             puzzle_pk=self.pk, row=i, col=j)
-        cell.possibilities = json.dumps(
-            list(cell_poss))
+        cell.possibilities = list(cell_poss)
 
         cell.save()
 
@@ -192,8 +190,9 @@ class SudokuPuzzle(models.Model):
 class PuzzleCell(models.Model):
     puzzle_pk = models.IntegerField()
     value = models.IntegerField(default=0, blank=True, null=True)
-    possibilities = models.CharField(
-        default='[]', max_length=50, blank=True, null=True)
+    possibilities = ArrayField(
+        base_field=models.IntegerField(), size=9,
+        blank=True, null=True, default=[])
     filled = models.BooleanField(default=False)
     row = models.IntegerField(default=-1, blank=True)
     col = models.IntegerField(default=-1, blank=True)
