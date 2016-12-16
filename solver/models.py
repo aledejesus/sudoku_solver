@@ -38,6 +38,9 @@ class SudokuPuzzle(models.Model):
         base_field=models.CharField(max_length=2),
         blank=True, null=True, default=[])
 
+    def __str__(self):
+        return "pk:%i - solved:%s" % (self.pk, self.solved)
+
     def solve(self):
         #  MAIN SOLVING FLOW. CALL ALGO FUNCTIONS/METHODS FROM HERE
         self.solved_puzzle = self.unsolved_puzzle
