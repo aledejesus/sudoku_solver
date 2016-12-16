@@ -12,6 +12,13 @@ class SudokuPuzzleTestCase(TestCase):
         self.puzzle.save()
         self.puzzle.refresh_from_db()
 
+    def test_str(self):
+        pk = self.puzzle.pk
+        solved = self.puzzle.solved
+
+        self.assertEqual(
+            "pk:%i - solved:%s" % (pk, solved), self.puzzle.__str__())
+
     def test_solve(self):
         self.assertFalse(self.puzzle.solved)
         known_vals = len(utils.remove_zeroes(
