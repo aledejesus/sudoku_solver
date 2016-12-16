@@ -166,26 +166,26 @@ class SudokuPuzzle(models.Model):
         #         puzzle_pk=self.pk, possibilities='[]',
         #         position__startswith=str(i))
 
-    def get_possibilities(self, i, j):
-        # returns all possibilities for a given cell
-
-        cell_poss = set(ALL_POSS)
-        row = self.get_row(i)
-        col = self.get_col(j)
-        sqr = self.get_sqr(i, j)
-
-        cell_poss = cell_poss.difference(set(row))
-        cell_poss = cell_poss.difference(set(col))
-        cell_poss = cell_poss.difference(set(sqr))
-
-        if len(cell_poss) < 1 or len(cell_poss) > 9:
-            raise Exception("Invalid number of possibilities")
-
-        return cell_poss
+    # def get_possibilities(self, i, j):
+    #     # returns all possibilities for a given cell
+    #
+    #     cell_poss = set(ALL_POSS)
+    #     row = self.get_row(i)
+    #     col = self.get_col(j)
+    #     sqr = self.get_sqr(i, j)
+    #
+    #     cell_poss = cell_poss.difference(set(row))
+    #     cell_poss = cell_poss.difference(set(col))
+    #     cell_poss = cell_poss.difference(set(sqr))
+    #
+    #     if len(cell_poss) < 1 or len(cell_poss) > 9:
+    #         raise Exception("Invalid number of possibilities")
+    #
+    #     return cell_poss
 
 
 class PuzzleCell(models.Model):
-    puzzle_pk = models.IntegerField()
+    puzzle = models.ForeignKey(SudokuPuzzle)
     value = models.IntegerField(default=0, blank=True, null=True)
     possibilities = ArrayField(
         base_field=models.IntegerField(), size=9,
@@ -196,3 +196,24 @@ class PuzzleCell(models.Model):
 
     def __str__(self):
         return "v:%i - r:%i - c:%i" % (self.value, self.row, self.col)
+
+    def get_possibilities(self):
+        # returns all possibilities for a given cell
+
+        puzzle = self.puzzle
+        i = self.row
+        j = self.col
+
+        cell_poss = set(ALL_POSS)
+        row = puzzle.get_row(i)
+        col = puzzle.get_col(j)
+        sqr = puzzle.get_sqr(i, j)
+
+        cell_poss = cell_poss.difference(set(row))
+        cell_poss = cell_poss.difference(set(col))
+        cell_poss = cell_poss.difference(set(sqr))
+
+        if len(cell_poss) < 1 or len(cell_poss) > 9:
+            raise Exception("Invalid number of possibilities")
+
+        return cell_poss
