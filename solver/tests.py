@@ -3,7 +3,6 @@ from factories import SudokuPuzzleFactory
 import numpy as np
 from . import models
 from sudoku_solver import utils
-import json
 
 
 class SudokuPuzzleTestCase(TestCase):
@@ -90,7 +89,7 @@ class SudokuPuzzleTestCase(TestCase):
         first_cell = models.PuzzleCell.objects.get(
             puzzle_pk=self.puzzle.pk, row=i, col=j)
         self.assertEqual(len(set(exp_poss).difference(
-            set(json.loads(first_cell.possibilities)))), 0)
+            set(first_cell.possibilities))), 0)
 
         exp_poss = [3, 9]
         self.puzzle.solved_puzzle[0] = [0, 0, 0, 7, 5, 1, 4, 2, 8]
@@ -99,7 +98,7 @@ class SudokuPuzzleTestCase(TestCase):
         first_cell = models.PuzzleCell.objects.get(
             puzzle_pk=self.puzzle.pk, row=i, col=j)
         self.assertEqual(len(set(exp_poss).difference(
-            set(json.loads(first_cell.possibilities)))), 0)
+            set(first_cell.possibilities))), 0)
 
     def test_set_missing_vals_pos(self):
         self.assertEqual(len(self.puzzle.missing_vals_pos), 0)
