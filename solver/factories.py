@@ -20,3 +20,12 @@ class SudokuPuzzleFactory(factory.Factory):
     solved_puzzle = []
     solved = False
     missing_vals_pos = []
+
+
+class PuzzleCellFactory(factory.Factory):
+    class Meta:
+        model = models.PuzzleCell
+
+    puzzle = factory.SubFactory(SudokuPuzzleFactory)
+    row = 0
+    col = 0
