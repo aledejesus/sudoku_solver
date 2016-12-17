@@ -42,15 +42,17 @@ class SudokuPuzzle(models.Model):
         self.solved_puzzle = self.unsolved_puzzle
         self.set_missing_vals_pos()
         self.create_puzzle_cells()
-        puzzle_cells = PuzzleCell.objects.select_related(
-            'puzzle').filter(puzzle=self)
         run_again = True
 
         # if values were found run again
         while run_again:
+            self.save() # this is done so the determine_possibilities method
+                        # uses the updated solved_puzzle
             qty_vals_bef = len(utils.remove_zeroes(
                 np.ravel(self.solved_puzzle).tolist()))
             # known vals qty BEFORE running single_cand_algo
+            puzzle_cells = PuzzleCell.objects.select_related(
+                'puzzle').filter(puzzle=self)
 
             for i in range(9):
                 for j in range(9):
@@ -120,18 +122,10 @@ class SudokuPuzzle(models.Model):
     def create_puzzle_cells(self):
         for i in range(9):
             for j in range(9):
+                cell = PuzzleCell(puzzle=self, row=i, col=j)
 
                 if self.solved_puzzle[i][j] != 0:
-                    cell_poss = set()
-                    cell_poss.add(self.solved_puzzle[i][j])
-
-                else:
-                    cell_poss = self.determine_possibilities(i, j)
-
-                cell = PuzzleCell(
-                    puzzle=self,
-                    possibilities=list(cell_poss),
-                    row=i, col=j)
+                    cell.value = self.solved_puzzle[i][j]
 
                 cell.save()
 
