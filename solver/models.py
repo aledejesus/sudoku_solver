@@ -49,20 +49,25 @@ class SudokuPuzzle(models.Model):
 
         # if values were found run again
         while run_again:
+            self.save() # this is done so the determine_possibilities method
+                        # uses the updated solved_puzzle
             qty_vals_bef = len(utils.remove_zeroes(
                 np.ravel(self.solved_puzzle).tolist()))
             # known vals qty BEFORE running single_cand_algo
+            puzzle_cells = PuzzleCell.objects.select_related(
+                'puzzle').filter(puzzle=self)
 
             for i in range(9):
                 for j in range(9):
                     if self.solved_puzzle[i][j] == 0:
-                        cell_poss = self.get_possibilities(i, j)
+                        cell = puzzle_cells.filter(row=i, col=j)[0]
+                        cell_poss = cell.determine_possibilities()
 
                         if len(cell_poss) == 1:
-                            self.single_cand_algo(i, j, cell_poss)
+                            self.single_cand_algo(cell, cell_poss)
 
                         else:
-                            self.update_possibilities(i, j, cell_poss)
+                            cell.update_possibilities(cell_poss)
 
             qty_vals_aft = len(utils.remove_zeroes(
                 np.ravel(self.solved_puzzle).tolist()))
@@ -120,36 +125,20 @@ class SudokuPuzzle(models.Model):
     def create_puzzle_cells(self):
         for i in range(9):
             for j in range(9):
+                cell = PuzzleCell(puzzle=self, row=i, col=j)
 
                 if self.solved_puzzle[i][j] != 0:
-                    cell_poss = set()
-                    cell_poss.add(self.solved_puzzle[i][j])
-
-                else:
-                    cell_poss = self.get_possibilities(i, j)
-
-                cell = PuzzleCell(
-                    puzzle_pk=self.pk,
-                    possibilities=list(cell_poss),
-                    row=i, col=j)
+                    cell.value = self.solved_puzzle[i][j]
 
                 cell.save()
 
-    def single_cand_algo(self, i, j, cell_poss):
+    def single_cand_algo(self, cell, cell_poss):
         # single candidate algorithm
 
-        cell = PuzzleCell.objects.get(
-            puzzle_pk=self.pk, row=i, col=j)
         cell.value = list(cell_poss)[0]
         cell.filled = True
-        self.solved_puzzle[i][j] = cell.value  # add value to puzzle if found
-
-        cell.save()
-
-    def update_possibilities(self, i, j, cell_poss):
-        cell = PuzzleCell.objects.get(
-            puzzle_pk=self.pk, row=i, col=j)
-        cell.possibilities = list(cell_poss)
+        self.solved_puzzle[
+            cell.row][cell.col] = cell.value  # add value to puzzle if found
 
         cell.save()
 
@@ -169,26 +158,9 @@ class SudokuPuzzle(models.Model):
         #         puzzle_pk=self.pk, possibilities='[]',
         #         position__startswith=str(i))
 
-    def get_possibilities(self, i, j):
-        # returns all possibilities for a given cell
-
-        cell_poss = set(ALL_POSS)
-        row = self.get_row(i)
-        col = self.get_col(j)
-        sqr = self.get_sqr(i, j)
-
-        cell_poss = cell_poss.difference(set(row))
-        cell_poss = cell_poss.difference(set(col))
-        cell_poss = cell_poss.difference(set(sqr))
-
-        if len(cell_poss) < 1 or len(cell_poss) > 9:
-            raise Exception("Invalid number of possibilities")
-
-        return cell_poss
-
 
 class PuzzleCell(models.Model):
-    puzzle_pk = models.IntegerField()
+    puzzle = models.ForeignKey(SudokuPuzzle, default=None)
     value = models.IntegerField(default=0, blank=True, null=True)
     possibilities = ArrayField(
         base_field=models.IntegerField(), size=9,
@@ -199,3 +171,26 @@ class PuzzleCell(models.Model):
 
     def __str__(self):
         return "v:%i - r:%i - c:%i" % (self.value, self.row, self.col)
+
+    def determine_possibilities(self):
+        # Determines all possibilities for a given cell
+
+        puzzle = self.puzzle
+
+        cell_poss = set(ALL_POSS)
+        row = puzzle.get_row(self.row)
+        col = puzzle.get_col(self.col)
+        sqr = puzzle.get_sqr(self.row, self.col)
+
+        cell_poss = cell_poss.difference(set(row))
+        cell_poss = cell_poss.difference(set(col))
+        cell_poss = cell_poss.difference(set(sqr))
+
+        if len(cell_poss) < 1 or len(cell_poss) > 9:
+            raise Exception("Invalid number of possibilities")
+
+        return cell_poss
+
+    def update_possibilities(self, cell_poss):
+        self.possibilities = list(cell_poss)
+        self.save()
