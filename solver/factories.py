@@ -2,7 +2,7 @@ import factory
 from . import models
 
 
-class SudokuPuzzleFactory(factory.Factory):
+class SudokuPuzzleFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.SudokuPuzzle
 
@@ -17,12 +17,12 @@ class SudokuPuzzleFactory(factory.Factory):
         [0, 5, 0, 0, 0, 2, 1, 7, 4],
         [4, 6, 9, 0, 0, 7, 0, 0, 0]
     ]
-    solved_puzzle = []
+    solved_puzzle = factory.LazyAttribute(lambda obj: obj.unsolved_puzzle)
     solved = False
     missing_vals_pos = []
 
 
-class PuzzleCellFactory(factory.Factory):
+class PuzzleCellFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.PuzzleCell
 

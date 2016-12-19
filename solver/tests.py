@@ -7,9 +7,7 @@ from sudoku_solver import utils
 
 class SudokuPuzzleTestCase(TestCase):
     def setUp(self):
-        self.puzzle = SudokuPuzzleFactory()
-        self.puzzle.solved_puzzle = self.puzzle.unsolved_puzzle
-        self.puzzle.save()
+        self.puzzle = SudokuPuzzleFactory.create()
 
     def test_solve(self):
         self.assertFalse(self.puzzle.solved)
@@ -89,10 +87,8 @@ class SudokuPuzzleTestCase(TestCase):
 
 class PuzzleCellTestCase(TestCase):
     def setUp(self):
-        self.cell = PuzzleCellFactory()
-        self.cell.puzzle.solved_puzzle = self.cell.puzzle.unsolved_puzzle
-        self.cell.puzzle.save()
-        # self.cell.save()
+        self.puzzle = SudokuPuzzleFactory.create()
+        self.cell = PuzzleCellFactory(puzzle=self.puzzle)
 
     def test_determine_possibilities(self):
         exp_poss = [3, 5, 9]  # expected possibilities
