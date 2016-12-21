@@ -46,6 +46,8 @@ class SudokuPuzzle(models.Model):
         self.set_missing_vals_pos()
         self.create_puzzle_cells()
         run_again = True
+        qty_vals_bef = 0
+        qty_vals_aft = 0
 
         # if values were found run again
         while run_again:
@@ -75,7 +77,9 @@ class SudokuPuzzle(models.Model):
 
             run_again = qty_vals_bef < qty_vals_aft
 
-        self.solved = True
+        if qty_vals_aft == 81:
+            self.solved = True
+
         self.save()
 
     def get_row(self, i):
