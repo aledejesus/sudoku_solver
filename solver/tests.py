@@ -31,6 +31,20 @@ class SudokuPuzzleTestCase(TestCase):
             np.ravel(self.puzzle.solved_puzzle).tolist()))
         self.assertTrue(known_vals == 81)
 
+    def test_puzzle_not_solved(self):
+        self.assertFalse(self.puzzle.solved)
+        known_vals = len(utils.remove_zeroes(
+            np.ravel(self.puzzle.solved_puzzle).tolist()))
+        self.assertTrue(known_vals < 81)
+
+        self.puzzle.unsolved_puzzle[0] = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.puzzle.solve()
+
+        known_vals = len(utils.remove_zeroes(
+            np.ravel(self.puzzle.solved_puzzle).tolist()))
+        self.assertTrue(known_vals < 81)
+        self.assertFalse(self.puzzle.solved)
+
     def test_get_row(self):
         expected_row = [7, 4, 2, 8]
         actual_row = self.puzzle.get_row(0)
