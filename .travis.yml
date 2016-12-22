@@ -1,6 +1,9 @@
 language: python
 python: 2.7
 services: postgresql
-cache: pip
 install: pip install -r requirements.txt
+cache: pip
+before_script:
+  - psql -c "CREATE DATABASE ss_db;" -U postgres
+  - psql -c "CREATE ROLE sudoku_solver WITH PASSWORD 'alesudoku';" -U postgres
 script: python manage.py test
