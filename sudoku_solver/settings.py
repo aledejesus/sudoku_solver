@@ -80,7 +80,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'ss_db',
         'USER': 'sudoku_solver',
-        'PASSWORD': 'alesudoku',
+        'PASSWORD': '',
     }
 }
 
