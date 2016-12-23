@@ -51,8 +51,9 @@ class SudokuPuzzle(models.Model):
 
         # if values were found run again
         while run_again:
-            self.save() # this is done so the determine_possibilities method
-                        # uses the updated solved_puzzle
+            self.save()
+            # ^ this is done so the determine_possibilities method
+            # uses the updated solved_puzzle
             qty_vals_bef = len(utils.remove_zeroes(
                 np.ravel(self.solved_puzzle).tolist()))
             # known vals qty BEFORE running single_cand_algo
