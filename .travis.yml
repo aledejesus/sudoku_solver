@@ -6,4 +6,5 @@ cache: pip
 before_script:
   - psql -c "CREATE DATABASE ss_db;" -U postgres
   - psql -c "CREATE ROLE sudoku_solver WITH PASSWORD '';" -U postgres
+  - psql -c "ALTER ROLE sudoku_solver WITH LOGIN;" -U postgres
 script: python manage.py test
