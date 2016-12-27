@@ -37,17 +37,23 @@ class SudokuPuzzle(models.Model):
         base_field=models.CharField(max_length=2),
         blank=True, null=True, default=[])
 
+    def __str__(self):
+        return "pk:%i - solved:%s" % (self.pk, self.solved)
+
     def solve(self):
         #  MAIN SOLVING FLOW. CALL ALGO FUNCTIONS/METHODS FROM HERE
         self.solved_puzzle = self.unsolved_puzzle
         self.set_missing_vals_pos()
         self.create_puzzle_cells()
         run_again = True
+        qty_vals_bef = 0
+        qty_vals_aft = 0
 
         # if values were found run again
         while run_again:
-            self.save() # this is done so the determine_possibilities method
-                        # uses the updated solved_puzzle
+            self.save()
+            # ^ this is done so the determine_possibilities method
+            # uses the updated solved_puzzle
             qty_vals_bef = len(utils.remove_zeroes(
                 np.ravel(self.solved_puzzle).tolist()))
             # known vals qty BEFORE running single_cand_algo
@@ -72,7 +78,9 @@ class SudokuPuzzle(models.Model):
 
             run_again = qty_vals_bef < qty_vals_aft
 
-        self.solved = True
+        if qty_vals_aft == 81:
+            self.solved = True
+
         self.save()
 
     def get_row(self, i):

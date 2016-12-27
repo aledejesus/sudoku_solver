@@ -9,6 +9,13 @@ class SudokuPuzzleTestCase(TestCase):
     def setUp(self):
         self.puzzle = SudokuPuzzleFactory.create()
 
+    def test_str(self):
+        pk = self.puzzle.pk
+        solved = self.puzzle.solved
+
+        self.assertEqual(
+            "pk:%i - solved:%s" % (pk, solved), self.puzzle.__str__())
+
     def test_solve(self):
         self.assertFalse(self.puzzle.solved)
         known_vals = len(utils.remove_zeroes(
@@ -20,6 +27,20 @@ class SudokuPuzzleTestCase(TestCase):
         known_vals = len(utils.remove_zeroes(
             np.ravel(self.puzzle.solved_puzzle).tolist()))
         self.assertTrue(known_vals == 81)
+
+    def test_puzzle_not_solved(self):
+        self.assertFalse(self.puzzle.solved)
+        known_vals = len(utils.remove_zeroes(
+            np.ravel(self.puzzle.solved_puzzle).tolist()))
+        self.assertTrue(known_vals < 81)
+
+        self.puzzle.unsolved_puzzle[0] = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.puzzle.solve()
+
+        known_vals = len(utils.remove_zeroes(
+            np.ravel(self.puzzle.solved_puzzle).tolist()))
+        self.assertTrue(known_vals < 81)
+        self.assertFalse(self.puzzle.solved)
 
     def test_get_row(self):
         expected_row = [7, 4, 2, 8]
