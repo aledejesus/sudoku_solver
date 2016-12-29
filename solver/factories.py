@@ -21,13 +21,6 @@ class SudokuPuzzleFactory(factory.django.DjangoModelFactory):
     solved = False
     missing_vals_pos = []
 
-    @classmethod
-    def _create(cls, model_class, *args, **kwargs):
-        """Create an instance of the model, and save it to the database."""
-        manager = cls._get_manager(model_class)
-
-        return manager.create(*args, **kwargs)
-
 
 class PuzzleCellFactory(factory.django.DjangoModelFactory):
     class Meta:
@@ -36,10 +29,3 @@ class PuzzleCellFactory(factory.django.DjangoModelFactory):
     puzzle = factory.SubFactory(SudokuPuzzleFactory)
     row = 0
     col = 0
-
-    @classmethod
-    def _create(cls, model_class, *args, **kwargs):
-        """Create an instance of the model, and save it to the database."""
-        manager = cls._get_manager(model_class)
-
-        return manager.create(*args, **kwargs)
