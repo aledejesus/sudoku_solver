@@ -30,7 +30,7 @@ class SudokuPuzzle(models.Model):
     solved_puzzle = ArrayField(
         base_field=ArrayField(
             base_field=models.IntegerField(), size=9, blank=True, null=True,
-            default=[]),
+            default=list()),
         size=9, blank=True, null=True, default=[])
     solved = models.BooleanField(default=False)
     missing_vals_pos = ArrayField(
@@ -38,7 +38,10 @@ class SudokuPuzzle(models.Model):
         blank=True, null=True, default=[])
 
     def __str__(self):
-        return "pk:%i - solved:%s" % (self.pk, self.solved)
+        try:
+            return "pk:%i - solved:%s" % (self.pk, self.solved)
+        except:
+            return "pk:* - solved:%s" % self.solved
 
     def solve(self):
         #  MAIN SOLVING FLOW. CALL ALGO FUNCTIONS/METHODS FROM HERE
