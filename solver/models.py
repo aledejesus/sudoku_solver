@@ -41,7 +41,7 @@ class SudokuPuzzle(models.Model):
         try:
             return "pk:%i - solved:%s" % (self.pk, self.solved)
         except:
-            return "pk:* - solved:%s" % self.solved
+            return "pk:unsaved - solved:%s" % self.solved
 
     def solve(self):
         #  MAIN SOLVING FLOW. CALL ALGO FUNCTIONS/METHODS FROM HERE
