@@ -23,7 +23,7 @@ class SudokuPuzzleTestCase(TestCase):
         puzzle = SudokuPuzzleFactory.build()
 
         self.assertEqual(
-            "pk:* - solved:%s" % puzzle.solved, puzzle.__str__())
+            "pk:unsaved - solved:%s" % puzzle.solved, puzzle.__str__())
 
     def test_solve(self):
         self.assertFalse(self.puzzle.solved)
