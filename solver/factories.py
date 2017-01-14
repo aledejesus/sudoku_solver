@@ -19,9 +19,9 @@ class SudokuPuzzleFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.SudokuPuzzle
 
-    unsolved_puzzle = utils.clone_list(list(EASY_PUZZLE))
+    unsolved_puzzle = utils.clone_list(EASY_PUZZLE, True)
     solved_puzzle = factory.LazyAttribute(
-        lambda obj: utils.clone_list(obj.unsolved_puzzle))
+        lambda obj: utils.clone_list(obj.unsolved_puzzle, True))
 
 
 class PuzzleCellFactory(factory.django.DjangoModelFactory):

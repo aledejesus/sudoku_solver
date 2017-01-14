@@ -7,10 +7,13 @@ def get_empty_list():
     return list()
 
 
-def clone_list(original):
-    cloned = get_empty_list()
+def clone_list(original, contains_lists):
+    cloned = list()
 
-    for i in range(len(original)):
-        cloned.append(list(original[i]))
+    if contains_lists:
+        for lst in original:
+            cloned.append(list(lst))
+    else:
+        cloned = list(original)
 
     return cloned

@@ -37,12 +37,10 @@ class SudokuPuzzleTestCase(TestCase):
         lst = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 
         for i in range(3):  # replace fisrt 3 rows with lst
-            self.puzzle.solved_puzzle.pop(i)
-            self.puzzle.solved_puzzle.insert(i, list(lst))
+            self.puzzle.unsolved_puzzle[i] = utils.clone_list(lst, False)
 
         self.puzzle.save()
         self.puzzle.solve()
-
         known_vals = len(utils.remove_zeroes(
             np.ravel(self.puzzle.solved_puzzle).tolist()))
         self.assertTrue(known_vals < 81)
@@ -90,11 +88,10 @@ class SudokuPuzzleTestCase(TestCase):
         i = 0
         j = 0
         expected_val = 9
-        self.puzzle.create_puzzle_cells()
         lst = [0, 3, 6, 7, 5, 1, 4, 2, 8]
-        self.puzzle.solved_puzzle.pop(0)
-        self.puzzle.solved_puzzle.insert(0, list(lst))
+        self.puzzle.solved_puzzle[0] = utils.clone_list(lst, False)
         self.puzzle.save()
+        self.puzzle.create_puzzle_cells()
         first_cell = models.PuzzleCell.objects.get(
             puzzle=self.puzzle, row=i, col=j)
         self.assertFalse(first_cell.filled)
