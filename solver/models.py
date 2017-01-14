@@ -35,7 +35,7 @@ class SudokuPuzzle(models.Model):
     solved = models.BooleanField(default=False)
     missing_vals_pos = ArrayField(
         base_field=models.CharField(max_length=2),
-        blank=True, null=True, default=list())
+        blank=True, null=True, default=None)
 
     def __str__(self):
         return "pk:%i - solved:%s" % (self.pk, self.solved)
@@ -147,6 +147,8 @@ class SudokuPuzzle(models.Model):
         cell.save()
 
     def set_missing_vals_pos(self):
+        self.missing_vals_pos = list()
+
         for i in range(9):
             for j in range(9):
                 if self.solved_puzzle[i][j] == 0:

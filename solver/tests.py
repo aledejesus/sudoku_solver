@@ -1,5 +1,6 @@
 from django.test import TestCase
-from factories import SudokuPuzzleFactory, PuzzleCellFactory
+from factories import (
+    SudokuPuzzleFactory, PuzzleCellFactory, prov_puzzle_factory)
 import numpy as np
 from . import models
 from sudoku_solver import utils
@@ -7,7 +8,8 @@ from sudoku_solver import utils
 
 class SudokuPuzzleTestCase(TestCase):
     def setUp(self):
-        self.puzzle = SudokuPuzzleFactory.create()
+        # self.puzzle = SudokuPuzzleFactory.create()
+        self.puzzle = prov_puzzle_factory()
 
     def test_str(self):
         pk = self.puzzle.pk
@@ -105,7 +107,7 @@ class SudokuPuzzleTestCase(TestCase):
         self.assertEqual(first_cell.value, expected_val)
 
     def test_set_missing_vals_pos(self):
-        self.assertEqual(len(self.puzzle.missing_vals_pos), 0)
+        self.assertTrue(self.puzzle.missing_vals_pos is None)
 
         self.puzzle.set_missing_vals_pos()
         self.assertEqual(len(self.puzzle.missing_vals_pos), 46)

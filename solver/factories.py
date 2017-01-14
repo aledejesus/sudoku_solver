@@ -31,3 +31,13 @@ class PuzzleCellFactory(factory.django.DjangoModelFactory):
     puzzle = factory.SubFactory(SudokuPuzzleFactory)
     row = 0
     col = 0
+
+
+def prov_puzzle_factory():
+    # provisional SudokuPuzzle factory
+    puzzle = models.SudokuPuzzle.objects.create(
+        unsolved_puzzle=utils.clone_list(EASY_PUZZLE, True),
+        solved_puzzle=utils.clone_list(EASY_PUZZLE, True))
+    puzzle.save()
+
+    return puzzle
