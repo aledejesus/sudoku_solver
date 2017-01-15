@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import TestCase, Client
 from factories import (
     SudokuPuzzleFactory, PuzzleCellFactory, prov_puzzle_factory)
 import numpy as np
@@ -144,3 +144,12 @@ class PuzzleCellTestCase(TestCase):
         self.cell.update_possibilities(cell_poss)
         self.assertEqual(len(set(cell_poss).difference(
             set(self.cell.possibilities))), 0)
+
+
+class SolverViewsTestCase(TestCase):
+    def SetUp(self):
+        self.client = Client()
+
+    def test_choose_method(self):
+        response = self.client.get('/solver/')
+        self.assertEqual(response.status_code, 200)
