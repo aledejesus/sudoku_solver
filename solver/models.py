@@ -31,11 +31,11 @@ class SudokuPuzzle(models.Model):
         base_field=ArrayField(
             base_field=models.IntegerField(), size=9, blank=True, null=True,
             default=list()),
-        size=9, blank=True, null=True, default=[])
+        size=9, blank=True, null=True, default=list())
     solved = models.BooleanField(default=False)
     missing_vals_pos = ArrayField(
         base_field=models.CharField(max_length=2),
-        blank=True, null=True, default=[])
+        blank=True, null=True, default=None)
 
     def __str__(self):
         try:
@@ -45,7 +45,7 @@ class SudokuPuzzle(models.Model):
 
     def solve(self):
         #  MAIN SOLVING FLOW. CALL ALGO FUNCTIONS/METHODS FROM HERE
-        self.solved_puzzle = self.unsolved_puzzle
+        self.solved_puzzle = utils.clone_list(self.unsolved_puzzle, True)
         self.set_missing_vals_pos()
         self.create_puzzle_cells()
         run_again = True
@@ -83,7 +83,6 @@ class SudokuPuzzle(models.Model):
 
         if qty_vals_aft == 81:
             self.solved = True
-
         self.save()
 
     def get_row(self, i):
@@ -151,6 +150,8 @@ class SudokuPuzzle(models.Model):
         cell.save()
 
     def set_missing_vals_pos(self):
+        self.missing_vals_pos = list()
+
         for i in range(9):
             for j in range(9):
                 if self.solved_puzzle[i][j] == 0:
@@ -172,7 +173,7 @@ class PuzzleCell(models.Model):
     value = models.IntegerField(default=0, blank=True, null=True)
     possibilities = ArrayField(
         base_field=models.IntegerField(), size=9,
-        blank=True, null=True, default=[])
+        blank=True, null=True, default=list())
     filled = models.BooleanField(default=False)
     row = models.IntegerField(default=-1, blank=True)
     col = models.IntegerField(default=-1, blank=True)

@@ -1,5 +1,6 @@
 from django.test import TestCase
-from factories import SudokuPuzzleFactory
+from factories import (
+    SudokuPuzzleFactory, PuzzleCellFactory, prov_puzzle_factory)
 import numpy as np
 from . import models
 from sudoku_solver import utils
@@ -7,10 +8,8 @@ from sudoku_solver import utils
 
 class SudokuPuzzleTestCase(TestCase):
     def setUp(self):
-        self.puzzle = SudokuPuzzleFactory()
-        self.puzzle.solved_puzzle = self.puzzle.unsolved_puzzle
-        self.puzzle.save()
-        self.puzzle.refresh_from_db()
+        # self.puzzle = SudokuPuzzleFactory.create()
+        self.puzzle = prov_puzzle_factory()
 
     def test_str_with_saved_puzzle(self):
         pk = self.puzzle.pk
@@ -43,9 +42,13 @@ class SudokuPuzzleTestCase(TestCase):
             np.ravel(self.puzzle.solved_puzzle).tolist()))
         self.assertTrue(known_vals < 81)
 
-        self.puzzle.unsolved_puzzle[0] = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-        self.puzzle.solve()
+        lst = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 
+        for i in range(3):  # replace fisrt 3 rows with lst
+            self.puzzle.unsolved_puzzle[i] = utils.clone_list(lst, False)
+
+        self.puzzle.save()
+        self.puzzle.solve()
         known_vals = len(utils.remove_zeroes(
             np.ravel(self.puzzle.solved_puzzle).tolist()))
         self.assertTrue(known_vals < 81)
@@ -93,9 +96,10 @@ class SudokuPuzzleTestCase(TestCase):
         i = 0
         j = 0
         expected_val = 9
-        self.puzzle.create_puzzle_cells()
-        self.puzzle.solved_puzzle[0] = [0, 3, 6, 7, 5, 1, 4, 2, 8]
+        lst = [0, 3, 6, 7, 5, 1, 4, 2, 8]
+        self.puzzle.solved_puzzle[0] = utils.clone_list(lst, False)
         self.puzzle.save()
+        self.puzzle.create_puzzle_cells()
         first_cell = models.PuzzleCell.objects.get(
             puzzle=self.puzzle, row=i, col=j)
         self.assertFalse(first_cell.filled)
@@ -108,41 +112,35 @@ class SudokuPuzzleTestCase(TestCase):
         self.assertTrue(first_cell.filled)
         self.assertEqual(first_cell.value, expected_val)
 
-    # def test_update_possibilities(self):
-    #     i = 0
-    #     j = 0
-    #     exp_poss = [3, 5, 9]  # expected possibilities
-    #     self.puzzle.create_puzzle_cells()
-    #     first_cell = models.PuzzleCell.objects.get(
-    #         puzzle_pk=self.puzzle.pk, row=i, col=j)
-    #     self.assertEqual(len(set(exp_poss).difference(
-    #         set(first_cell.possibilities))), 0)
-    #
-    #     exp_poss = [3, 9]
-    #     self.puzzle.solved_puzzle[0] = [0, 0, 0, 7, 5, 1, 4, 2, 8]
-    #     cell_poss = self.puzzle.get_possibilities(i, j)
-    #     self.puzzle.update_possibilities(i, j, cell_poss)
-    #     first_cell = models.PuzzleCell.objects.get(
-    #         puzzle_pk=self.puzzle.pk, row=i, col=j)
-    #     self.assertEqual(len(set(exp_poss).difference(
-    #         set(first_cell.possibilities))), 0)
-
     def test_set_missing_vals_pos(self):
-        self.assertEqual(len(self.puzzle.missing_vals_pos), 0)
+        self.assertTrue(self.puzzle.missing_vals_pos is None)
 
         self.puzzle.set_missing_vals_pos()
         self.assertEqual(len(self.puzzle.missing_vals_pos), 46)
 
-    # def test_get_possibilities(self):
-    #     i = 0
-    #     j = 0
-    #     exp_poss = [3, 5, 9]  # expected possibilities
-    #     cell_poss = self.puzzle.get_possibilities(i, j)
-    #     self.assertEqual(len(set(exp_poss).difference(set(cell_poss))), 0)
 
-    # def test_get_possibilities_raises_exception(self):
-    #     i = 0
-    #     j = 0
-    #     self.puzzle.solved_puzzle[i] = [9, 3, 6, 7, 5, 1, 4, 2, 8]
-    #     with self.assertRaises(Exception):
-    #         self.puzzle.get_possibilities(i, j)
+class PuzzleCellTestCase(TestCase):
+    def setUp(self):
+        self.puzzle = SudokuPuzzleFactory.create()
+        self.cell = PuzzleCellFactory(puzzle=self.puzzle)
+
+    def test_determine_possibilities(self):
+        exp_poss = [3, 5, 9]  # expected possibilities
+        cell_poss = self.cell.determine_possibilities()
+        self.assertEqual(len(set(exp_poss).difference(set(cell_poss))), 0)
+
+    def test_determine_possibilities_raises_exception(self):
+        i = 0
+        self.cell.puzzle.solved_puzzle[i] = [9, 3, 6, 7, 5, 1, 4, 2, 8]
+        with self.assertRaises(Exception):
+            self.cell.determine_possibilities()
+
+    def test_update_possibilities(self):
+        exp_poss = []
+        self.assertEqual(len(set(exp_poss).difference(
+            set(self.cell.possibilities))), 0)
+
+        cell_poss = set([1, 2, 3])
+        self.cell.update_possibilities(cell_poss)
+        self.assertEqual(len(set(cell_poss).difference(
+            set(self.cell.possibilities))), 0)
