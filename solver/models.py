@@ -38,7 +38,10 @@ class SudokuPuzzle(models.Model):
         blank=True, null=True, default=None)
 
     def __str__(self):
-        return "pk:%i - solved:%s" % (self.pk, self.solved)
+        try:
+            return "pk:%i - solved:%s" % (self.pk, self.solved)
+        except:
+            return "pk:unsaved - solved:%s" % self.solved
 
     def solve(self):
         #  MAIN SOLVING FLOW. CALL ALGO FUNCTIONS/METHODS FROM HERE

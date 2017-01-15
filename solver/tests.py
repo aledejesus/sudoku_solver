@@ -11,12 +11,18 @@ class SudokuPuzzleTestCase(TestCase):
         # self.puzzle = SudokuPuzzleFactory.create()
         self.puzzle = prov_puzzle_factory()
 
-    def test_str(self):
+    def test_str_with_saved_puzzle(self):
         pk = self.puzzle.pk
         solved = self.puzzle.solved
 
         self.assertEqual(
             "pk:%i - solved:%s" % (pk, solved), self.puzzle.__str__())
+
+    def test_str_with_unsaved_puzzle(self):
+        puzzle = SudokuPuzzleFactory.build()
+
+        self.assertEqual(
+            "pk:unsaved - solved:%s" % puzzle.solved, puzzle.__str__())
 
     def test_solve(self):
         self.assertFalse(self.puzzle.solved)
