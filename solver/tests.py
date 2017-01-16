@@ -153,3 +153,11 @@ class SolverViewsTestCase(TestCase):
     def test_choose_method(self):
         response = self.client.get('/solver/')
         self.assertEqual(response.status_code, 200)
+
+    def test_input_numbers(self):
+        response = self.client.get('/solver/numbers/')
+        self.assertEqual(response.status_code, 200)
+
+    def test_test_solver(self):
+        response = self.client.get('/solver/test_solver/')
+        self.assertEqual(response.status_code, 200)
