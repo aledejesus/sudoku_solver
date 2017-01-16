@@ -121,7 +121,8 @@ class SudokuPuzzleTestCase(TestCase):
 
 class PuzzleCellTestCase(TestCase):
     def setUp(self):
-        self.puzzle = SudokuPuzzleFactory.create()
+        # self.puzzle = SudokuPuzzleFactory.create()
+        self.puzzle = prov_puzzle_factory()
         self.cell = PuzzleCellFactory(puzzle=self.puzzle)
 
     def test_determine_possibilities(self):
