@@ -121,8 +121,18 @@ class SudokuPuzzleTestCase(TestCase):
 
 class PuzzleCellTestCase(TestCase):
     def setUp(self):
-        self.puzzle = SudokuPuzzleFactory.create()
+        # self.puzzle = SudokuPuzzleFactory.create()
+        self.puzzle = prov_puzzle_factory()
         self.cell = PuzzleCellFactory(puzzle=self.puzzle)
+
+    def test_str(self):
+        val = self.cell.value
+        row = self.cell.row
+        col = self.cell.col
+
+        self.assertEqual(
+            "v:%i - r:%i - c:%i" % (val, row, col),
+            self.cell.__str__())
 
     def test_determine_possibilities(self):
         exp_poss = [3, 5, 9]  # expected possibilities
