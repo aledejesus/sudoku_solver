@@ -57,8 +57,7 @@ class SudokuPuzzle(models.Model):
             self.save()
             # ^ this is done so the determine_possibilities method
             # uses the updated solved_puzzle
-            qty_vals_bef = len(utils.remove_zeroes(
-                np.ravel(self.solved_puzzle).tolist()))
+            qty_vals_bef = self.get_known_vals_qty()
             # known vals qty BEFORE running single_cand_algo
             puzzle_cells = PuzzleCell.objects.select_related(
                 'puzzle').filter(puzzle=self)
@@ -75,8 +74,7 @@ class SudokuPuzzle(models.Model):
                         else:
                             cell.update_possibilities(cell_poss)
 
-            qty_vals_aft = len(utils.remove_zeroes(
-                np.ravel(self.solved_puzzle).tolist()))
+            qty_vals_aft = self.get_known_vals_qty()
             # known vals qty AFTER running single_cand_algo
 
             run_again = qty_vals_bef < qty_vals_aft
@@ -156,6 +154,13 @@ class SudokuPuzzle(models.Model):
             for j in range(9):
                 if self.solved_puzzle[i][j] == 0:
                     self.missing_vals_pos.append(str(i) + str(j))
+
+    def get_known_vals_qty(self):
+        # returns the quantity of known values in the puzzle
+        qty = len(utils.remove_zeroes(np.ravel(
+            self.solved_puzzle).tolist()))
+
+        return qty
 
     # def single_pos_algo(self, i, j):
         # single position algorithm
