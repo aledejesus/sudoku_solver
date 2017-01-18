@@ -157,7 +157,7 @@ class PuzzleCellTestCase(TestCase):
 
 
 class SolverViewsTestCase(TestCase):
-    def SetUp(self):
+    def setUp(self):
         self.client = Client()
 
     def test_choose_method(self):
@@ -169,5 +169,30 @@ class SolverViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_test_solver(self):
+        TESTS = ('easy', 'medium')
         response = self.client.get('/solver/test_solver/')
         self.assertEqual(response.status_code, 200)
+        correct_ids = list()
+
+        for test in TESTS:
+            id_unsolved = 'id_grid_%s_unsolved' % test
+            id_solved = 'id_grid_%s_solved' % test
+
+            pos_id_unsolved = response.content.find(id_unsolved)
+            pos_id_solved = response.content.find(id_solved)
+
+            if pos_id_unsolved > -1:
+                start = pos_id_unsolved + len(id_unsolved)
+                pos_id_unsolved = response.content.find(id_unsolved, start)
+
+                if pos_id_unsolved == -1:
+                    correct_ids.append(id_unsolved)
+
+            if pos_id_solved > -1:
+                start = pos_id_solved + len(id_solved)
+                pos_id_solved = response.content.find(id_solved, start)
+
+                if pos_id_solved == -1:
+                    correct_ids.append(id_solved)
+
+        self.assertEqual(len(correct_ids), len(TESTS)*2)
