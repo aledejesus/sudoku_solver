@@ -10,4 +10,5 @@ before_script:
   - psql -c "ALTER USER sudoku_solver WITH SUPERUSER;" -U postgres
 script:
   - flake8 .
-  - python manage.py test
+  - coverage run manage.py test -v 2
+  - coverage report
