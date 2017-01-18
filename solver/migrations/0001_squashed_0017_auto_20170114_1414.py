@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 import django.contrib.postgres.fields
 from django.db import migrations, models
 import django.db.models.deletion
-import sudoku_solver.utils
 
 
 class Migration(migrations.Migration):
@@ -23,7 +22,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('value', models.IntegerField(blank=True, default=0, null=True)),
-                ('possibilities', django.contrib.postgres.fields.ArrayField(base_field=models.IntegerField(), blank=True, default=[], null=True, size=9)),
+                ('possibilities', django.contrib.postgres.fields.ArrayField(base_field=models.IntegerField(), blank=True, default=list(), null=True, size=9)),
                 ('filled', models.BooleanField(default=False)),
                 ('col', models.IntegerField(blank=True, default=-1)),
                 ('row', models.IntegerField(blank=True, default=-1)),
@@ -34,7 +33,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('unsolved_puzzle', django.contrib.postgres.fields.ArrayField(base_field=django.contrib.postgres.fields.ArrayField(base_field=models.IntegerField(), size=9), size=9)),
-                ('solved_puzzle', django.contrib.postgres.fields.ArrayField(base_field=django.contrib.postgres.fields.ArrayField(base_field=models.IntegerField(), blank=True, default=[], null=True, size=9), blank=True, default=[], null=True, size=9)),
+                ('solved_puzzle', django.contrib.postgres.fields.ArrayField(base_field=django.contrib.postgres.fields.ArrayField(base_field=models.IntegerField(), blank=True, default=list(), null=True, size=9), blank=True, default=list(), null=True, size=9)),
                 ('solved', models.BooleanField(default=False)),
                 ('missing_vals_pos', django.contrib.postgres.fields.ArrayField(base_field=models.CharField(max_length=2), blank=True, default=None, null=True, size=None)),
             ],
@@ -47,11 +46,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='puzzlecell',
             name='possibilities',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.IntegerField(), blank=True, default=sudoku_solver.utils.get_empty_list, null=True, size=9),
-        ),
-        migrations.AlterField(
-            model_name='puzzlecell',
-            name='possibilities',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.IntegerField(), blank=True, default=[], null=True, size=9),
+            field=django.contrib.postgres.fields.ArrayField(base_field=models.IntegerField(), blank=True, default=list(), null=True, size=9),
         ),
     ]
