@@ -1,7 +1,6 @@
 import factory
 import copy
 from . import models
-from sudoku_solver import utils
 
 EASY_PUZZLE = (
     (0, 0, 0, 7, 0, 0, 4, 2, 8),
