@@ -3,7 +3,6 @@ from factories import (
     SudokuPuzzleFactory, PuzzleCellFactory, prov_puzzle_factory)
 import numpy as np
 from . import models
-from sudoku_solver import utils
 
 
 class SudokuPuzzleTestCase(TestCase):
