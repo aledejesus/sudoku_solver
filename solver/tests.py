@@ -3,6 +3,7 @@ from factories import (
     SudokuPuzzleFactory, PuzzleCellFactory, prov_puzzle_factory)
 import numpy as np
 from . import models
+from .templatetags.return_item import return_item
 
 
 class SudokuPuzzleTestCase(TestCase):
@@ -197,3 +198,26 @@ class SolverViewsTestCase(TestCase):
                     correct_ids.append(id_solved)
 
         self.assertEqual(len(correct_ids), len(TESTS)*2)
+
+
+class TemplateTagsTestCase(TestCase):
+    def test_return_item_returns_space(self):
+        arr = [0, 1, 2]
+        i = 0
+
+        res = return_item(arr, i)
+        self.assertEqual(res, " ")
+
+    def test_return_item_returns_int(self):
+        arr = [0, 1, 2]
+        i = 1
+
+        res = return_item(arr, i)
+        self.assertEqual(res, 1)
+
+    def test_return_item_returns_none(self):
+        arr = [0, 1, 2]
+        i = 'whatever'
+
+        res = return_item(arr, i)
+        self.assertTrue(res is None)
