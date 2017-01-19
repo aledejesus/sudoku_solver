@@ -1,6 +1,6 @@
 import factory
+import copy
 from . import models
-from sudoku_solver import utils
 
 EASY_PUZZLE = (
     (0, 0, 0, 7, 0, 0, 4, 2, 8),
@@ -19,9 +19,10 @@ class SudokuPuzzleFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.SudokuPuzzle
 
-    unsolved_puzzle = utils.clone_list(EASY_PUZZLE, True)
+    unsolved_puzzle = factory.LazyAttribute(
+        lambda obj: [list(item) for item in EASY_PUZZLE])
     solved_puzzle = factory.LazyAttribute(
-        lambda obj: utils.clone_list(obj.unsolved_puzzle, True))
+        lambda obj: copy.deepcopy(obj.unsolved_puzzle))
 
 
 class PuzzleCellFactory(factory.django.DjangoModelFactory):
@@ -36,8 +37,8 @@ class PuzzleCellFactory(factory.django.DjangoModelFactory):
 def prov_puzzle_factory():
     # provisional SudokuPuzzle factory
     puzzle = models.SudokuPuzzle.objects.create(
-        unsolved_puzzle=utils.clone_list(EASY_PUZZLE, True),
-        solved_puzzle=utils.clone_list(EASY_PUZZLE, True))
+        unsolved_puzzle=[list(it) for it in EASY_PUZZLE])
+    puzzle.solved_puzzle = copy.deepcopy(puzzle.unsolved_puzzle)
     puzzle.save()
 
     return puzzle

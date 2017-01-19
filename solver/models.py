@@ -4,6 +4,7 @@ from sets import ImmutableSet
 import numpy as np
 from sudoku_solver import utils
 from django.contrib.postgres.fields import ArrayField
+import copy
 
 SQUARE_DEFS = (
     # (first_cell_row, first_cell_col, last_cell_row, last_cell_col) # SQR#
@@ -45,7 +46,7 @@ class SudokuPuzzle(models.Model):
 
     def solve(self):
         #  MAIN SOLVING FLOW. CALL ALGO FUNCTIONS/METHODS FROM HERE
-        self.solved_puzzle = utils.clone_list(self.unsolved_puzzle, True)
+        self.solved_puzzle = copy.deepcopy(self.unsolved_puzzle)
         self.set_missing_vals_pos()
         self.create_puzzle_cells()
         run_again = True

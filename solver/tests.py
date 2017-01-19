@@ -3,7 +3,6 @@ from factories import (
     SudokuPuzzleFactory, PuzzleCellFactory, prov_puzzle_factory)
 import numpy as np
 from . import models
-from sudoku_solver import utils
 
 
 class SudokuPuzzleTestCase(TestCase):
@@ -42,7 +41,7 @@ class SudokuPuzzleTestCase(TestCase):
         lst = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 
         for i in range(3):  # replace fisrt 3 rows with lst
-            self.puzzle.unsolved_puzzle[i] = utils.clone_list(lst, False)
+            self.puzzle.unsolved_puzzle[i] = list(lst)
 
         self.puzzle.save()
         self.puzzle.solve()
@@ -93,7 +92,7 @@ class SudokuPuzzleTestCase(TestCase):
         j = 0
         expected_val = 9
         lst = [0, 3, 6, 7, 5, 1, 4, 2, 8]
-        self.puzzle.solved_puzzle[0] = utils.clone_list(lst, False)
+        self.puzzle.solved_puzzle[0] = list(lst)
         self.puzzle.save()
         self.puzzle.create_puzzle_cells()
         first_cell = models.PuzzleCell.objects.get(
