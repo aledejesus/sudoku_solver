@@ -9,5 +9,4 @@ before_script:
   - psql -c "ALTER ROLE sudoku_solver WITH LOGIN;" -U postgres
   - psql -c "ALTER USER sudoku_solver WITH SUPERUSER;" -U postgres
 script:
-  - sudo su
-  - . test.bash
+  - ./test.bash
