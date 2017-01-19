@@ -26,20 +26,17 @@ class SudokuPuzzleTestCase(TestCase):
 
     def test_solve(self):
         self.assertFalse(self.puzzle.solved)
-        known_vals = len(utils.remove_zeroes(
-            np.ravel(self.puzzle.solved_puzzle).tolist()))
+        known_vals = self.puzzle.get_known_vals_qty()
         self.assertTrue(known_vals < 81)
 
         self.puzzle.solve()
         self.assertTrue(self.puzzle.solved)
-        known_vals = len(utils.remove_zeroes(
-            np.ravel(self.puzzle.solved_puzzle).tolist()))
+        known_vals = self.puzzle.get_known_vals_qty()
         self.assertTrue(known_vals == 81)
 
     def test_puzzle_not_solved(self):
         self.assertFalse(self.puzzle.solved)
-        known_vals = len(utils.remove_zeroes(
-            np.ravel(self.puzzle.solved_puzzle).tolist()))
+        known_vals = self.puzzle.get_known_vals_qty()
         self.assertTrue(known_vals < 81)
 
         lst = [0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -49,8 +46,7 @@ class SudokuPuzzleTestCase(TestCase):
 
         self.puzzle.save()
         self.puzzle.solve()
-        known_vals = len(utils.remove_zeroes(
-            np.ravel(self.puzzle.solved_puzzle).tolist()))
+        known_vals = self.puzzle.get_known_vals_qty()
         self.assertTrue(known_vals < 81)
         self.assertFalse(self.puzzle.solved)
 
@@ -117,6 +113,12 @@ class SudokuPuzzleTestCase(TestCase):
 
         self.puzzle.set_missing_vals_pos()
         self.assertEqual(len(self.puzzle.missing_vals_pos), 46)
+
+    def test_get_known_vals_qty(self):
+        exp_qty = 35  # expected quantity
+        act_qty = self.puzzle.get_known_vals_qty()  # actual quantity
+
+        self.assertEqual(exp_qty, act_qty)
 
 
 class PuzzleCellTestCase(TestCase):
