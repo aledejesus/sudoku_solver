@@ -68,12 +68,10 @@ class SudokuPuzzle(models.Model):
                     if self.solved_puzzle[i][j] == 0:
                         cell = puzzle_cells.filter(row=i, col=j)[0]
                         cell_poss = cell.determine_possibilities()
+                        cell.update_possibilities(cell_poss)
 
                         if len(cell_poss) == 1:
-                            self.single_cand_algo(cell, cell_poss)
-
-                        else:
-                            cell.update_possibilities(cell_poss)
+                            self.single_cand_algo(cell)
 
             qty_vals_aft = self.get_known_vals_qty()
             # known vals qty AFTER running single_cand_algo
@@ -138,15 +136,16 @@ class SudokuPuzzle(models.Model):
 
                 cell.save()
 
-    def single_cand_algo(self, cell, cell_poss):
+    def single_cand_algo(self, cell):
         # single candidate algorithm
 
-        cell.value = list(cell_poss)[0]
+        cell.value = cell.possibilities[0]
         cell.filled = True
         self.solved_puzzle[
             cell.row][cell.col] = cell.value  # add value to puzzle if found
 
         cell.save()
+        self.save()
 
     def set_missing_vals_pos(self):
         self.missing_vals_pos = list()
