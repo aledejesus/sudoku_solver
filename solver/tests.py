@@ -102,7 +102,8 @@ class SudokuPuzzleTestCase(TestCase):
         self.assertEqual(first_cell.value, 0)
 
         cell_poss = first_cell.determine_possibilities()
-        self.puzzle.single_cand_algo(first_cell, cell_poss)
+        first_cell.update_possibilities(cell_poss)
+        self.puzzle.single_cand_algo(first_cell)
         first_cell = models.PuzzleCell.objects.get(
             puzzle=self.puzzle, row=i, col=j)
         self.assertTrue(first_cell.filled)
