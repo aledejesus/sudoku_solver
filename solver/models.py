@@ -5,6 +5,8 @@ import numpy as np
 from sudoku_solver import utils
 from django.contrib.postgres.fields import ArrayField
 import copy
+from timeit import default_timer as timer
+
 
 SQUARE_DEFS = (
     # (first_cell_row, first_cell_col, last_cell_row, last_cell_col) # SQR#
@@ -37,6 +39,7 @@ class SudokuPuzzle(models.Model):
     missing_vals_pos = ArrayField(
         base_field=models.CharField(max_length=2),
         blank=True, null=True, default=None)
+    solving_time = models.FloatField(default=float(0.0))
 
     def __str__(self):
         try:
@@ -46,6 +49,7 @@ class SudokuPuzzle(models.Model):
 
     def solve(self):
         #  MAIN SOLVING FLOW. CALL ALGO FUNCTIONS/METHODS FROM HERE
+        start = timer()
         self.solved_puzzle = copy.deepcopy(self.unsolved_puzzle)
         self.set_missing_vals_pos()
         self.create_puzzle_cells()
@@ -80,6 +84,9 @@ class SudokuPuzzle(models.Model):
 
         if qty_vals_aft == 81:
             self.solved = True
+
+        end = timer()
+        self.solving_time = end - start
         self.save()
 
     def get_row(self, i):

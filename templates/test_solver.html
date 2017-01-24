@@ -35,6 +35,9 @@
     <h4>
       {{ key|capfirst }} test passed: {{ value.passed_test }}
     </h4>
+    <h4>
+      Solving Time: {{ value.solving_time|floatformat:2 }} s
+    </h4>
   </div>
   {% endfor %}
 </center>
