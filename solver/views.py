@@ -67,7 +67,8 @@ def test_solver(request):
         context["tests"][test] = {
             "unsolved": unsolved_disp[test],
             "solved": puzzle.solved_puzzle,
-            "passed_test": passed_test[test]
+            "passed_test": passed_test[test],
+            "solving_time": puzzle.solving_time
         }
 
     # TODO: DELETE PUZZLES FROM DATABASE AFTER TEST

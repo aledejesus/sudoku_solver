@@ -33,6 +33,7 @@ class SudokuPuzzleTestCase(TestCase):
         self.assertTrue(self.puzzle.solved)
         known_vals = self.puzzle.get_known_vals_qty()
         self.assertTrue(known_vals == 81)
+        self.assertTrue(self.puzzle.solving_time > 0.0)
 
     def test_puzzle_not_solved(self):
         self.assertFalse(self.puzzle.solved)
