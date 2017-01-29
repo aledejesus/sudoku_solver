@@ -138,7 +138,14 @@ class SudokuPuzzle(models.Model):
             for j in range(9):
                 cell = PuzzleCell(puzzle=self, row=i, col=j)
 
-                if self.solved_puzzle[i][j] != 0:
+                if self.solved_puzzle[i][j] == 0:
+                    cell_poss = cell.determine_possibilities()
+                    cell.update_possibilities(cell_poss)
+
+                    if len(cell_poss) == 1:
+                        self.single_cand_algo(cell)
+
+                else:
                     cell.value = self.solved_puzzle[i][j]
 
                 cell.save()
