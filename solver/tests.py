@@ -96,9 +96,8 @@ class SudokuPuzzleTestCase(TestCase):
         lst = [0, 3, 6, 7, 5, 1, 4, 2, 8]
         self.puzzle.solved_puzzle[0] = list(lst)
         self.puzzle.save()
-        self.puzzle.create_puzzle_cells()
-        first_cell = models.PuzzleCell.objects.get(
-            puzzle=self.puzzle, row=i, col=j)
+        first_cell = models.PuzzleCell.objects.create(
+            puzzle=self.puzzle, row=0, col=0)
         self.assertFalse(first_cell.filled)
         self.assertEqual(first_cell.value, 0)
 
