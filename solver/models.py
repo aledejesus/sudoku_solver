@@ -37,8 +37,10 @@ class SudokuPuzzle(models.Model):
         size=9, blank=True, null=True, default=list())
     solved = models.BooleanField(default=False)
     missing_vals_pos = ArrayField(
-        base_field=models.CharField(max_length=2),
-        blank=True, null=True, default=None)
+        base_field=ArrayField(
+                base_field=models.IntegerField(), size=2,
+                blank=True, null=True),
+        blank=True, null=True)
     solving_time = models.FloatField(default=float(0.0))
 
     def __str__(self):
@@ -165,7 +167,7 @@ class SudokuPuzzle(models.Model):
         for i in range(9):
             for j in range(9):
                 if self.solved_puzzle[i][j] == 0:
-                    self.missing_vals_pos.append(str(i) + str(j))
+                    self.missing_vals_pos.append(list([i, j]))
 
     def get_known_vals_qty(self):
         # returns the quantity of known values in the puzzle
