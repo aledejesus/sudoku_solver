@@ -65,17 +65,14 @@ class SudokuPuzzle(models.Model):
             qty_vals_bef = self.get_known_vals_qty()
             # known vals qty BEFORE running single_cand_algo
             puzzle_cells = PuzzleCell.objects.select_related(
-                'puzzle').filter(puzzle=self)
+                'puzzle').filter(puzzle=self, filled=False)
 
-            for i in range(9):
-                for j in range(9):
-                    if self.solved_puzzle[i][j] == 0:
-                        cell = puzzle_cells.filter(row=i, col=j)[0]
-                        cell_poss = cell.determine_possibilities()
-                        cell.update_possibilities(cell_poss)
+            for cell in list(puzzle_cells):
+                cell_poss = cell.determine_possibilities()
+                cell.update_possibilities(cell_poss)
 
-                        if len(cell_poss) == 1:
-                            self.single_cand_algo(cell)
+                if len(cell_poss) == 1:
+                    self.single_cand_algo(cell)
 
             qty_vals_aft = self.get_known_vals_qty()
             # known vals qty AFTER running single_cand_algo
@@ -147,6 +144,7 @@ class SudokuPuzzle(models.Model):
 
                 else:
                     cell.value = self.solved_puzzle[i][j]
+                    cell.filled = True
 
                 cell.save()
 
