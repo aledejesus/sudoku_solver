@@ -71,8 +71,6 @@ class SudokuPuzzleTestCase(TestCase):
             self.puzzle.get_sqr(-1, -1)
 
     def test_create_puzzle_cells(self):
-        i = 0
-        j = 0
         cells = models.PuzzleCell.objects.filter(puzzle=self.puzzle)
         self.assertTrue(cells.count() == 0)
 
@@ -80,14 +78,19 @@ class SudokuPuzzleTestCase(TestCase):
         cells = models.PuzzleCell.objects.filter(puzzle=self.puzzle)
         self.assertTrue(cells.count() == 81)
 
-        first_cell = models.PuzzleCell.objects.get(
-            puzzle=self.puzzle, row=i, col=j)
-        self.assertTrue(self.puzzle.unsolved_puzzle[i][j] == first_cell.value)
+        # Test a known value cell
+        cell = models.PuzzleCell.objects.filter(
+            puzzle=self.puzzle, filled=True).first()
+        self.assertTrue(self.puzzle.solved_puzzle[
+            cell.row][cell.col] == cell.value)
+        self.assertTrue(cell.value != 0)
 
-        if self.puzzle.unsolved_puzzle[i][j] == 0:
-            self.assertFalse(first_cell.filled)
-        else:
-            self.assertTrue(first_cell.filled)
+        # Test an unknown value cell
+        cell = models.PuzzleCell.objects.filter(
+            puzzle=self.puzzle, filled=False).first()
+        self.assertTrue(self.puzzle.unsolved_puzzle[
+            cell.row][cell.col] == cell.value)
+        self.assertTrue(cell.value == 0)
 
     def test_single_cand_algo(self):
         i = 0
