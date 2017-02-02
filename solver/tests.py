@@ -67,7 +67,7 @@ class SudokuPuzzleTestCase(TestCase):
         self.assertTrue(np.array_equal(expected_sqr, actual_sqr))
 
     def test_get_sqr_def_with_invalid_cell(self):
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValueError):
             self.puzzle.get_sqr_def(-1, -1)
 
     def test_create_puzzle_cells(self):
@@ -128,6 +128,12 @@ class SudokuPuzzleTestCase(TestCase):
         act_sqr = self.puzzle.get_sqr_def(i, j)
 
         self.assertTrue(np.array_equal(exp_sqr, act_sqr))
+
+    def test_rec_update_poss(self):
+        # first_row = [0, 3, 6, 7, 5, 0, 4, 2, 8]
+        # first_col = [0, 7, 2, 8, 5, 6, 1, 0, 4]
+        # first_sqr = [0, 0, 0, 7, 1, 4, 2, 0, 0]
+        pass
 
 
 class PuzzleCellTestCase(TestCase):
