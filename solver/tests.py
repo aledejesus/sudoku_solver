@@ -130,10 +130,29 @@ class SudokuPuzzleTestCase(TestCase):
         self.assertTrue(np.array_equal(exp_sqr, act_sqr))
 
     def test_rec_update_poss(self):
-        # first_row = [0, 3, 6, 7, 5, 0, 4, 2, 8]
-        # first_col = [0, 7, 2, 8, 5, 6, 1, 0, 4]
-        # first_sqr = [0, 0, 0, 7, 1, 4, 2, 0, 0]
-        pass
+        emp_arr = [[0, 0, 0, 0, 0, 0, 0, 0, 0]]
+        self.puzzle.solved_puzzle = list(emp_arr*9)
+        self.puzzle.save()
+
+        first_row = [0, 3, 6, 7, 5, 1, 4, 2, 8]
+        first_col = [0, 7, 2, 8, 5, 6, 1, 0, 4]
+        first_sqr = [[0, 3, 6], [7, 1, 4], [2, 0, 0]]
+        np_arr = np.array(self.puzzle.solved_puzzle)
+        np_arr[:3, :3] = list(first_sqr)
+        np_arr[0] = list(first_row)
+        np_arr[0] = list(first_col)
+        self.puzzle.solved_puzzle = np_arr.tolist()
+        self.puzzle.save()
+
+        self.puzzle.create_puzzle_cells(auto_fill=False)
+        EXP_VALS_BEF = 20
+        act_vals_bef = self.puzzle.get_known_vals_qty()
+        self.assertEqual(EXP_VALS_BEF, act_vals_bef)
+
+        EXP_VALS_AFT = 23
+        self.puzzle.rec_update_poss()
+        act_vals_aft = self.puzzle.get_known_vals_qty()
+        self.assertEqual(EXP_VALS_AFT, act_vals_aft)
 
 
 class PuzzleCellTestCase(TestCase):

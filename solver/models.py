@@ -135,7 +135,7 @@ class SudokuPuzzle(models.Model):
         # np.ravel puts array values in a 1D list
         return utils.remove_zeroes(np.ravel(sqr).tolist())
 
-    def create_puzzle_cells(self):
+    def create_puzzle_cells(self, auto_fill=True):
         for i in range(9):
             for j in range(9):
                 cell = PuzzleCell(puzzle=self, row=i, col=j)
@@ -144,7 +144,7 @@ class SudokuPuzzle(models.Model):
                     cell_poss = cell.determine_possibilities()
                     cell.update_possibilities(cell_poss)
 
-                    if len(cell_poss) == 1:
+                    if auto_fill and len(cell_poss) == 1:
                         self.single_cand_algo(cell)
 
                 else:
