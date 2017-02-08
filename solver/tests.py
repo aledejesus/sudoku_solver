@@ -70,13 +70,47 @@ class SudokuPuzzleTestCase(TestCase):
         with self.assertRaises(ValueError):
             self.puzzle.get_sqr_def(-1, -1)
 
-    def test_create_puzzle_cells(self):
+    def test_create_puzzle_cells_auto_fill_on(self):
         cells = models.PuzzleCell.objects.filter(puzzle=self.puzzle)
         self.assertTrue(cells.count() == 0)
+        exp_vals = 35
+        act_vals = self.puzzle.get_known_vals_qty()
+        self.assertEqual(exp_vals, act_vals)
 
         self.puzzle.create_puzzle_cells()
         cells = models.PuzzleCell.objects.filter(puzzle=self.puzzle)
         self.assertTrue(cells.count() == 81)
+        exp_vals = 45
+        act_vals = self.puzzle.get_known_vals_qty()
+        self.assertEqual(exp_vals, act_vals)
+
+        # Test a known value cell
+        cell = models.PuzzleCell.objects.filter(
+            puzzle=self.puzzle, filled=True).first()
+        self.assertTrue(self.puzzle.solved_puzzle[
+            cell.row][cell.col] == cell.value)
+        self.assertTrue(cell.value != 0)
+
+        # Test an unknown value cell
+        cell = models.PuzzleCell.objects.filter(
+            puzzle=self.puzzle, filled=False).first()
+        self.assertTrue(self.puzzle.unsolved_puzzle[
+            cell.row][cell.col] == cell.value)
+        self.assertTrue(cell.value == 0)
+
+    def test_create_puzzle_cells_auto_fill_off(self):
+        cells = models.PuzzleCell.objects.filter(puzzle=self.puzzle)
+        self.assertTrue(cells.count() == 0)
+        exp_vals = 35
+        act_vals = self.puzzle.get_known_vals_qty()
+        self.assertEqual(exp_vals, act_vals)
+
+        self.puzzle.create_puzzle_cells(auto_fill=False)
+        cells = models.PuzzleCell.objects.filter(puzzle=self.puzzle)
+        self.assertTrue(cells.count() == 81)
+        exp_vals = 35
+        act_vals = self.puzzle.get_known_vals_qty()
+        self.assertEqual(exp_vals, act_vals)
 
         # Test a known value cell
         cell = models.PuzzleCell.objects.filter(
