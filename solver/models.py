@@ -95,7 +95,7 @@ class SudokuPuzzle(models.Model):
         np_arr = np.array(self.solved_puzzle)
         return utils.remove_zeroes(np_arr[:, j].tolist())
 
-    def get_sqr(self, i, j):
+    def get_sqr_def(self, i, j):
         sqr_boundaries = [0, 0, 0, 0]
 
         # get square row boundaries
@@ -122,7 +122,12 @@ class SudokuPuzzle(models.Model):
 
         # assert that sqr is valid
         if (tuple(sqr_boundaries) not in SQUARE_DEFS):
-            raise ValueError("Invalid square")
+            raise Exception("Invalid square")
+
+        return sqr_boundaries
+
+    def get_sqr(self, i, j):
+        sqr_boundaries = self.get_sqr_def(i, j)
 
         np_arr = np.array(self.solved_puzzle)
         sqr = np_arr[
