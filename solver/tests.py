@@ -172,6 +172,8 @@ class SudokuPuzzleTestCase(TestCase):
         self.assertTrue(np.array_equal(exp_sqr, act_sqr))
 
     def test_rec_update_poss(self):
+        i = 0
+        j = 0
         emp_arr = [[0, 0, 0, 0, 0, 0, 0, 0, 0]]
         self.puzzle.solved_puzzle = list(emp_arr*9)
         self.puzzle.save()
@@ -182,17 +184,18 @@ class SudokuPuzzleTestCase(TestCase):
         np_arr = np.array(self.puzzle.solved_puzzle)
         np_arr[:3, :3] = list(first_sqr)
         np_arr[0] = list(first_row)
-        np_arr[0] = list(first_col)
+        np_arr[:, 0] = list(first_col)
         self.puzzle.solved_puzzle = np_arr.tolist()
         self.puzzle.save()
 
         self.puzzle.create_puzzle_cells(auto_fill=False)
-        EXP_VALS_BEF = 20
+        EXP_VALS_BEF = 17
         act_vals_bef = self.puzzle.get_known_vals_qty()
         self.assertEqual(EXP_VALS_BEF, act_vals_bef)
 
         EXP_VALS_AFT = 23
-        self.puzzle.rec_update_poss()
+        cell = models.PuzzleCell.objects.get(puzzle=self.puzzle, row=i, col=j)
+        self.puzzle.rec_update_poss(cell)
         act_vals_aft = self.puzzle.get_known_vals_qty()
         self.assertEqual(EXP_VALS_AFT, act_vals_aft)
 

@@ -6,7 +6,7 @@ from sudoku_solver import utils
 from django.contrib.postgres.fields import ArrayField
 import copy
 from timeit import default_timer as timer
-
+from django.db.models import Q
 
 SQUARE_DEFS = (
     # (first_cell_row, first_cell_col, last_cell_row, last_cell_col) # SQR#
@@ -122,7 +122,7 @@ class SudokuPuzzle(models.Model):
 
         # assert that sqr is valid
         if (tuple(sqr_boundaries) not in SQUARE_DEFS):
-            raise Exception("Invalid square")
+            raise ValueError("Invalid square")
 
         return sqr_boundaries
 
@@ -180,6 +180,30 @@ class SudokuPuzzle(models.Model):
             self.solved_puzzle).tolist()))
 
         return qty
+
+    def rec_update_poss(self, cell):
+            cell_poss = cell.determine_possibilities()
+            cell.update_possibilities(cell_poss)
+
+            if len(cell_poss) == 1:
+                    self.single_cand_algo(cell)
+
+                    sqr_def = self.get_sqr_def(cell.row, cell.col)
+                    q_gen = Q(puzzle=self, filled=False)
+                    q_col = Q(col=cell.col)
+                    q_row = Q(row=cell.row)
+                    q_sqr = Q(row__gte=sqr_def[0],  col__gte=sqr_def[1]) & \
+                        Q(row__lte=sqr_def[2], col__lte=sqr_def[3])
+
+                    related_cells = PuzzleCell.objects.filter(
+                        q_gen, (q_col | q_row | q_sqr)).\
+                        distinct().exclude(pk=cell.pk)
+
+                    for related_cell in list(related_cells):
+                        if self.solved_puzzle[related_cell.row][
+                                related_cell.col] != 0:
+                            self.rec_update_poss(related_cell)
+
 
     # def single_pos_algo(self, i, j):
         # single position algorithm
