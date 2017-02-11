@@ -180,7 +180,7 @@ class SudokuPuzzleTestCase(TestCase):
 
         first_row = [0, 3, 6, 7, 5, 1, 4, 2, 8]
         first_col = [0, 7, 2, 8, 5, 6, 1, 0, 4]
-        first_sqr = [[0, 3, 6], [7, 1, 4], [2, 0, 0]]
+        first_sqr = [[0, 3, 6], [7, 1, 4], [2, 0, 5]]
         np_arr = np.array(self.puzzle.solved_puzzle)
         np_arr[:3, :3] = list(first_sqr)
         np_arr[0] = list(first_row)
@@ -189,11 +189,11 @@ class SudokuPuzzleTestCase(TestCase):
         self.puzzle.save()
 
         self.puzzle.create_puzzle_cells(auto_fill=False)
-        EXP_VALS_BEF = 17
+        EXP_VALS_BEF = 18
         act_vals_bef = self.puzzle.get_known_vals_qty()
         self.assertEqual(EXP_VALS_BEF, act_vals_bef)
 
-        EXP_VALS_AFT = 23
+        EXP_VALS_AFT = 21
         cell = models.PuzzleCell.objects.get(puzzle=self.puzzle, row=i, col=j)
         self.puzzle.rec_update_poss(cell)
         act_vals_aft = self.puzzle.get_known_vals_qty()

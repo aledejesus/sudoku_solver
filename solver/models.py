@@ -201,9 +201,8 @@ class SudokuPuzzle(models.Model):
 
                     for related_cell in list(related_cells):
                         if self.solved_puzzle[related_cell.row][
-                                related_cell.col] != 0:
+                                related_cell.col] == 0:
                             self.rec_update_poss(related_cell)
-
 
     # def single_pos_algo(self, i, j):
         # single position algorithm
