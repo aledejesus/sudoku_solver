@@ -77,10 +77,12 @@ WSGI_APPLICATION = 'sudoku_solver.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'ss_db',
         'USER': 'sudoku_solver',
-        'PASSWORD': '',
+        'PASSWORD': '12345',
+        'HOST': 'localhost',
+        'PORT': '',
     }
 }
 
