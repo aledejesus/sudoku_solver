@@ -171,7 +171,7 @@ class SudokuPuzzleTestCase(TestCase):
 
         self.assertTrue(np.array_equal(exp_sqr, act_sqr))
 
-    def test_rec_update_poss(self):
+    def test_rec_sca_call(self):
         i = 0
         j = 0
         emp_arr = [[0, 0, 0, 0, 0, 0, 0, 0, 0]]
@@ -195,7 +195,7 @@ class SudokuPuzzleTestCase(TestCase):
 
         EXP_VALS_AFT = 21
         cell = models.PuzzleCell.objects.get(puzzle=self.puzzle, row=i, col=j)
-        self.puzzle.rec_update_poss(cell)
+        self.puzzle.rec_sca_call(cell)
         act_vals_aft = self.puzzle.get_known_vals_qty()
         self.assertEqual(EXP_VALS_AFT, act_vals_aft)
 

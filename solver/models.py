@@ -55,31 +55,37 @@ class SudokuPuzzle(models.Model):
         self.solved_puzzle = copy.deepcopy(self.unsolved_puzzle)
         self.set_missing_vals_pos()
         self.create_puzzle_cells()
-        run_again = True
         qty_vals_bef = 0
         qty_vals_aft = 0
 
         # if values were found run again
-        while run_again:
+        while True:
             self.save()
             # ^ this is done so the determine_possibilities method
             # uses the updated solved_puzzle
             qty_vals_bef = self.get_known_vals_qty()
             # known vals qty BEFORE running single_cand_algo
-            puzzle_cells = PuzzleCell.objects.select_related(
-                'puzzle').filter(puzzle=self, filled=False)
 
-            for cell in list(puzzle_cells):
-                cell_poss = cell.determine_possibilities()
-                cell.update_possibilities(cell_poss)
+            puzzle_cells = None
 
-                if len(cell_poss) == 1:
-                    self.single_cand_algo(cell)
+            while True:
+                puzzle_cells = PuzzleCell.objects.select_related(
+                    'puzzle').filter(puzzle=self, filled=False)
+
+                for cell in list(puzzle_cells):
+                    found = self.rec_sca_call(cell)
+
+                    if found:
+                        break
+
+                else:
+                    break
 
             qty_vals_aft = self.get_known_vals_qty()
             # known vals qty AFTER running single_cand_algo
 
-            run_again = qty_vals_bef < qty_vals_aft
+            if not (qty_vals_bef < qty_vals_aft):
+                break
 
         if qty_vals_aft == 81:
             self.solved = True
@@ -181,28 +187,36 @@ class SudokuPuzzle(models.Model):
 
         return qty
 
-    def rec_update_poss(self, cell):
-            cell_poss = cell.determine_possibilities()
-            cell.update_possibilities(cell_poss)
+    def rec_sca_call(self, cell):
+        """
+        Recursive single candidate algorithm (single_cand_algo) call
+        """
 
-            if len(cell_poss) == 1:
-                    self.single_cand_algo(cell)
+        cell_poss = cell.determine_possibilities()
+        cell.update_possibilities(cell_poss)
+        vals_found = False
 
-                    sqr_def = self.get_sqr_def(cell.row, cell.col)
-                    q_gen = Q(puzzle=self, filled=False)
-                    q_col = Q(col=cell.col)
-                    q_row = Q(row=cell.row)
-                    q_sqr = Q(row__gte=sqr_def[0],  col__gte=sqr_def[1]) & \
-                        Q(row__lte=sqr_def[2], col__lte=sqr_def[3])
+        if len(cell_poss) == 1:
+                vals_found = True
+                self.single_cand_algo(cell)
 
-                    related_cells = PuzzleCell.objects.filter(
-                        q_gen, (q_col | q_row | q_sqr)).\
-                        distinct().exclude(pk=cell.pk)
+                sqr_def = self.get_sqr_def(cell.row, cell.col)
+                q_gen = Q(puzzle=self, filled=False)
+                q_col = Q(col=cell.col)
+                q_row = Q(row=cell.row)
+                q_sqr = Q(row__gte=sqr_def[0],  col__gte=sqr_def[1]) & \
+                    Q(row__lte=sqr_def[2], col__lte=sqr_def[3])
 
-                    for related_cell in list(related_cells):
-                        if self.solved_puzzle[related_cell.row][
-                                related_cell.col] == 0:
-                            self.rec_update_poss(related_cell)
+                related_cells = PuzzleCell.objects.filter(
+                    q_gen, (q_col | q_row | q_sqr)).\
+                    distinct().exclude(pk=cell.pk)
+
+                for related_cell in list(related_cells):
+                    if self.solved_puzzle[related_cell.row][
+                            related_cell.col] == 0:
+                        self.rec_sca_call(related_cell)
+
+        return vals_found
 
     # def single_pos_algo(self, i, j):
         # single position algorithm
