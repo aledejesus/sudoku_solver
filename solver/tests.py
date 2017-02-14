@@ -199,6 +199,34 @@ class SudokuPuzzleTestCase(TestCase):
         act_vals_aft = self.puzzle.get_known_vals_qty()
         self.assertEqual(EXP_VALS_AFT, act_vals_aft)
 
+    def test_single_pos_algo(self):
+        i = 0
+        j = 0
+        self.puzzle.create_puzzle_cells(auto_fill=False)
+
+        fru_cells = models.PuzzleCell.objects.filter(
+            puzzle=self.puzzle, row=i, filled=False)
+        # ^ first row unsolved cells
+
+        first_cell = fru_cells.filter(col=j)
+        self.assertTrue(first_cell)  # asserts cell (i,j) is in qs
+        FC_VAL = 9  # first cell value
+
+        # Remove FC_VAL from the possibilities of all cells
+        # except from the possibilities of cell in (i,j)
+        for cell in list(fru_cells):
+            if cell.row != i and cell.col != j:
+                if FC_VAL in cell.possibilities:
+                    cell.possibilities.remove(FC_VAL)
+                    cell.save()
+
+        self.puzzle.single_pos_algo(first_cell)
+        first_cell = models.PuzzleCell.objects.get(
+            puzzle=self.puzzle, row=i, col=j)
+
+        self.assertTrue(first_cell.filled)
+        self.assertEqual(first_cell.value, FC_VAL)
+
 
 class PuzzleCellTestCase(TestCase):
     def setUp(self):

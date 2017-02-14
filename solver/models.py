@@ -218,15 +218,11 @@ class SudokuPuzzle(models.Model):
 
         return vals_found
 
-    # def single_pos_algo(self, i, j):
-        # single position algorithm
-
-        # cell_poss = self.get_possibilities(puzzle, i, j)
-
-        # for poss in cell_poss:
-        #     qs = PuzzleCell.objects.filter(
-        #         puzzle_pk=self.pk, possibilities='[]',
-        #         position__startswith=str(i))
+    def single_pos_algo(self, cell):
+        """
+        Applies the single position algorithm to the provided cell
+        """
+        pass
 
 
 class PuzzleCell(models.Model):
