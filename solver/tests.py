@@ -61,22 +61,61 @@ class SudokuPuzzleTestCase(TestCase):
         actual_col = self.puzzle.get_col(0)
         self.assertTrue(np.array_equal(expected_col, actual_col))
 
-    def test_get_sqr_with_valid_cell(self):
-        expected_sqr = [7, 1, 4, 2]
-        actual_sqr = self.puzzle.get_sqr(0, 0)
-        self.assertTrue(np.array_equal(expected_sqr, actual_sqr))
+    def test_get_sqr(self):
+        exp_sqr = [7, 1, 4, 2]
+        act_sqr = self.puzzle.get_sqr(0, 0)
+        self.assertTrue(np.array_equal(exp_sqr, act_sqr))
 
-    def test_get_sqr_with_invalid_cell(self):
-        with self.assertRaises(Exception):
-            self.puzzle.get_sqr(-1, -1)
+    def test_get_sqr_def_with_valid_cell(self):
+        exp_sqr_def = [0, 0, 2, 2]
+        act_sqr_def = self.puzzle.get_sqr_def(0, 0)
+        self.assertTrue(np.array_equal(exp_sqr_def, act_sqr_def))
 
-    def test_create_puzzle_cells(self):
+    def test_get_sqr_def_with_invalid_cell(self):
+        with self.assertRaises(ValueError):
+            self.puzzle.get_sqr_def(-1, -1)
+
+    def test_create_puzzle_cells_auto_fill_on(self):
         cells = models.PuzzleCell.objects.filter(puzzle=self.puzzle)
         self.assertTrue(cells.count() == 0)
+        exp_vals = 35
+        act_vals = self.puzzle.get_known_vals_qty()
+        self.assertEqual(exp_vals, act_vals)
 
         self.puzzle.create_puzzle_cells()
         cells = models.PuzzleCell.objects.filter(puzzle=self.puzzle)
         self.assertTrue(cells.count() == 81)
+        exp_vals = 45
+        act_vals = self.puzzle.get_known_vals_qty()
+        self.assertEqual(exp_vals, act_vals)
+
+        # Test a known value cell
+        cell = models.PuzzleCell.objects.filter(
+            puzzle=self.puzzle, filled=True).first()
+        self.assertTrue(self.puzzle.solved_puzzle[
+            cell.row][cell.col] == cell.value)
+        self.assertTrue(cell.value != 0)
+
+        # Test an unknown value cell
+        cell = models.PuzzleCell.objects.filter(
+            puzzle=self.puzzle, filled=False).first()
+        self.assertTrue(self.puzzle.unsolved_puzzle[
+            cell.row][cell.col] == cell.value)
+        self.assertTrue(cell.value == 0)
+
+    def test_create_puzzle_cells_auto_fill_off(self):
+        cells = models.PuzzleCell.objects.filter(puzzle=self.puzzle)
+        self.assertTrue(cells.count() == 0)
+        exp_vals = 35
+        act_vals = self.puzzle.get_known_vals_qty()
+        self.assertEqual(exp_vals, act_vals)
+
+        self.puzzle.create_puzzle_cells(auto_fill=False)
+        cells = models.PuzzleCell.objects.filter(puzzle=self.puzzle)
+        self.assertTrue(cells.count() == 81)
+        exp_vals = 35
+        act_vals = self.puzzle.get_known_vals_qty()
+        self.assertEqual(exp_vals, act_vals)
 
         # Test a known value cell
         cell = models.PuzzleCell.objects.filter(
@@ -123,6 +162,42 @@ class SudokuPuzzleTestCase(TestCase):
         act_qty = self.puzzle.get_known_vals_qty()  # actual quantity
 
         self.assertEqual(exp_qty, act_qty)
+
+    def test_get_sqr_def(self):
+        i = 1
+        j = 0
+        exp_sqr = [0, 0, 2, 2]
+        act_sqr = self.puzzle.get_sqr_def(i, j)
+
+        self.assertTrue(np.array_equal(exp_sqr, act_sqr))
+
+    def test_rec_sca_call(self):
+        i = 0
+        j = 0
+        emp_arr = [[0, 0, 0, 0, 0, 0, 0, 0, 0]]
+        self.puzzle.solved_puzzle = list(emp_arr*9)
+        self.puzzle.save()
+
+        first_row = [0, 3, 6, 7, 5, 1, 4, 2, 8]
+        first_col = [0, 7, 2, 8, 5, 6, 1, 0, 4]
+        first_sqr = [[0, 3, 6], [7, 1, 4], [2, 0, 5]]
+        np_arr = np.array(self.puzzle.solved_puzzle)
+        np_arr[:3, :3] = list(first_sqr)
+        np_arr[0] = list(first_row)
+        np_arr[:, 0] = list(first_col)
+        self.puzzle.solved_puzzle = np_arr.tolist()
+        self.puzzle.save()
+
+        self.puzzle.create_puzzle_cells(auto_fill=False)
+        EXP_VALS_BEF = 18
+        act_vals_bef = self.puzzle.get_known_vals_qty()
+        self.assertEqual(EXP_VALS_BEF, act_vals_bef)
+
+        EXP_VALS_AFT = 21
+        cell = models.PuzzleCell.objects.get(puzzle=self.puzzle, row=i, col=j)
+        self.puzzle.rec_sca_call(cell)
+        act_vals_aft = self.puzzle.get_known_vals_qty()
+        self.assertEqual(EXP_VALS_AFT, act_vals_aft)
 
 
 class PuzzleCellTestCase(TestCase):

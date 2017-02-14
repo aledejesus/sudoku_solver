@@ -6,7 +6,7 @@ from sudoku_solver import utils
 from django.contrib.postgres.fields import ArrayField
 import copy
 from timeit import default_timer as timer
-
+from django.db.models import Q
 
 SQUARE_DEFS = (
     # (first_cell_row, first_cell_col, last_cell_row, last_cell_col) # SQR#
@@ -55,31 +55,37 @@ class SudokuPuzzle(models.Model):
         self.solved_puzzle = copy.deepcopy(self.unsolved_puzzle)
         self.set_missing_vals_pos()
         self.create_puzzle_cells()
-        run_again = True
         qty_vals_bef = 0
         qty_vals_aft = 0
 
         # if values were found run again
-        while run_again:
+        while True:
             self.save()
             # ^ this is done so the determine_possibilities method
             # uses the updated solved_puzzle
             qty_vals_bef = self.get_known_vals_qty()
             # known vals qty BEFORE running single_cand_algo
-            puzzle_cells = PuzzleCell.objects.select_related(
-                'puzzle').filter(puzzle=self, filled=False)
 
-            for cell in list(puzzle_cells):
-                cell_poss = cell.determine_possibilities()
-                cell.update_possibilities(cell_poss)
+            puzzle_cells = None
 
-                if len(cell_poss) == 1:
-                    self.single_cand_algo(cell)
+            while True:
+                puzzle_cells = PuzzleCell.objects.select_related(
+                    'puzzle').filter(puzzle=self, filled=False)
+
+                for cell in list(puzzle_cells):
+                    found = self.rec_sca_call(cell)
+
+                    if found:
+                        break
+
+                else:
+                    break
 
             qty_vals_aft = self.get_known_vals_qty()
             # known vals qty AFTER running single_cand_algo
 
-            run_again = qty_vals_bef < qty_vals_aft
+            if not (qty_vals_bef < qty_vals_aft):
+                break
 
         if qty_vals_aft == 81:
             self.solved = True
@@ -95,7 +101,7 @@ class SudokuPuzzle(models.Model):
         np_arr = np.array(self.solved_puzzle)
         return utils.remove_zeroes(np_arr[:, j].tolist())
 
-    def get_sqr(self, i, j):
+    def get_sqr_def(self, i, j):
         sqr_boundaries = [0, 0, 0, 0]
 
         # get square row boundaries
@@ -122,7 +128,12 @@ class SudokuPuzzle(models.Model):
 
         # assert that sqr is valid
         if (tuple(sqr_boundaries) not in SQUARE_DEFS):
-            raise Exception("Invalid square")
+            raise ValueError("Invalid square")
+
+        return sqr_boundaries
+
+    def get_sqr(self, i, j):
+        sqr_boundaries = self.get_sqr_def(i, j)
 
         np_arr = np.array(self.solved_puzzle)
         sqr = np_arr[
@@ -132,7 +143,7 @@ class SudokuPuzzle(models.Model):
         # np.ravel puts array values in a 1D list
         return utils.remove_zeroes(np.ravel(sqr).tolist())
 
-    def create_puzzle_cells(self):
+    def create_puzzle_cells(self, auto_fill=True):
         for i in range(9):
             for j in range(9):
                 cell = PuzzleCell(puzzle=self, row=i, col=j)
@@ -141,7 +152,7 @@ class SudokuPuzzle(models.Model):
                     cell_poss = cell.determine_possibilities()
                     cell.update_possibilities(cell_poss)
 
-                    if len(cell_poss) == 1:
+                    if auto_fill and len(cell_poss) == 1:
                         self.single_cand_algo(cell)
 
                 else:
@@ -175,6 +186,37 @@ class SudokuPuzzle(models.Model):
             self.solved_puzzle).tolist()))
 
         return qty
+
+    def rec_sca_call(self, cell):
+        """
+        Recursive single candidate algorithm (single_cand_algo) call
+        """
+
+        cell_poss = cell.determine_possibilities()
+        cell.update_possibilities(cell_poss)
+        vals_found = False
+
+        if len(cell_poss) == 1:
+                vals_found = True
+                self.single_cand_algo(cell)
+
+                sqr_def = self.get_sqr_def(cell.row, cell.col)
+                q_gen = Q(puzzle=self, filled=False)
+                q_col = Q(col=cell.col)
+                q_row = Q(row=cell.row)
+                q_sqr = Q(row__gte=sqr_def[0],  col__gte=sqr_def[1]) & \
+                    Q(row__lte=sqr_def[2], col__lte=sqr_def[3])
+
+                related_cells = PuzzleCell.objects.filter(
+                    q_gen, (q_col | q_row | q_sqr)).\
+                    distinct().exclude(pk=cell.pk)
+
+                for related_cell in list(related_cells):
+                    if self.solved_puzzle[related_cell.row][
+                            related_cell.col] == 0:
+                        self.rec_sca_call(related_cell)
+
+        return vals_found
 
     # def single_pos_algo(self, i, j):
         # single position algorithm
