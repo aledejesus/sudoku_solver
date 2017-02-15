@@ -208,7 +208,7 @@ class SudokuPuzzleTestCase(TestCase):
             puzzle=self.puzzle, row=i, filled=False)
         # ^ first row unsolved cells
 
-        first_cell = fru_cells.filter(col=j)
+        first_cell = fru_cells.get(col=j)
         self.assertTrue(first_cell)  # asserts cell (i,j) is in qs
         FC_VAL = 9  # first cell value
 

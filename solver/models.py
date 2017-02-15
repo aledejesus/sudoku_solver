@@ -222,7 +222,43 @@ class SudokuPuzzle(models.Model):
         """
         Applies the single position algorithm to the provided cell
         """
-        pass
+
+        sqr_def = self.get_sqr_def(cell.row, cell.col)
+        q_gen = Q(puzzle=self, filled=False)
+        q_col = Q(col=cell.col)
+        q_row = Q(row=cell.row)
+        q_sqr = Q(row__gte=sqr_def[0],  col__gte=sqr_def[1]) & \
+            Q(row__lte=sqr_def[2], col__lte=sqr_def[3])
+
+        col_cells = PuzzleCell.objects.filter(
+            q_gen, q_col).exclude(pk=cell.pk)
+        row_cells = PuzzleCell.objects.filter(
+            q_gen, q_row).exclude(pk=cell.pk)
+        sqr_cells = PuzzleCell.objects.filter(
+            q_gen, q_sqr).exclude(pk=cell.pk)
+        related_cells_lst = [
+            list(col_cells),
+            list(row_cells),
+            list(sqr_cells)
+        ]
+
+        for related_cells in related_cells_lst:
+            poss = set(cell.possibilities)
+
+            for related_cell in related_cells:
+                poss = poss.difference(set(related_cell.possibilities))
+
+                if len(poss) == 0:
+                    break
+
+            else:
+                if len(poss) == 1:
+                    cell.possibilities = list(poss)
+                    self.single_cand_algo(cell)
+                    break
+
+                else:
+                    raise ValueError("Invalid number of unique possiblities")
 
 
 class PuzzleCell(models.Model):
