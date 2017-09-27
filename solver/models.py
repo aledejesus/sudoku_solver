@@ -256,17 +256,25 @@ class SudokuPuzzle(models.Model):
         return len(utils.remove_zeroes(np.ravel(
             self.solved_puzzle).tolist()))
 
-    def get_related_cells(self, cell):
+    def get_related_cells(self, cell, filled=False):
         """ Gets the related cells of a given cell.
 
             Args:
                 - cell (PuzzleCell)
+                - filled (bool or None): True if only filled cells
+                    are desired. False if only unfilled cells are desired.
+                    None if all related cells are desired.
 
             Returns:
                 - django.db.models.query.QuerySet: contains all
                     related cell objects.
         """
-        q_gen = Q(puzzle=self, filled=False)
+        gen_dict = {'puzzle': self}
+
+        if filled in [True, False]:
+            gen_dict['filled'] = filled
+
+        q_gen = Q(**gen_dict)
 
         return PuzzleCell.objects.filter(
             q_gen, (self.get_row_q(cell.row) | self.get_col_q(cell.col) |
