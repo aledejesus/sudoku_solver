@@ -81,6 +81,8 @@ class SudokuPuzzle(models.Model):
                 else:
                     break
 
+            # TODO: CALL SINGLE POS ALGO
+
             qty_vals_aft = self.get_known_vals_qty()
             # known vals qty AFTER running single_cand_algo
 
@@ -303,15 +305,16 @@ class SudokuPuzzle(models.Model):
 
     def single_pos_algo(self, cell):
         """
-        Applies the single position algorithm to the provided cell
+            Applies the single position algorithm to the provided cell.
         """
 
-        sqr_def = self.get_sqr_def(cell.row, cell.col)
         q_gen = Q(puzzle=self, filled=False)
-        q_col = Q(col=cell.col)
-        q_row = Q(row=cell.row)
-        q_sqr = Q(row__gte=sqr_def[0],  col__gte=sqr_def[1]) & \
-            Q(row__lte=sqr_def[2], col__lte=sqr_def[3])
+        # ^ TODO: ALSO INCLUDE SOLVED CELLS TO CORRECTLY ELIMINATE ALL
+        # POSSIBILITIES. THINK ABOUT UPDATING POSSIBILITIES BEFORE
+        # SOLVING CELL.
+        q_col = self.get_col_q(cell.i)
+        q_row = self.get_row_q(cell.j)
+        q_sqr = self.get_sqr_q(cell.i, cell.j)
 
         col_cells = PuzzleCell.objects.filter(
             q_gen, q_col).exclude(pk=cell.pk)
@@ -322,8 +325,7 @@ class SudokuPuzzle(models.Model):
         related_cells_lst = [
             list(col_cells),
             list(row_cells),
-            list(sqr_cells)
-        ]
+            list(sqr_cells)]
 
         for related_cells in related_cells_lst:
             poss = set(cell.possibilities)
@@ -331,6 +333,7 @@ class SudokuPuzzle(models.Model):
             for related_cell in related_cells:
                 poss = poss.difference(set(related_cell.possibilities))
 
+                # len(poss) == 0 means no unique possibilities
                 if len(poss) == 0:
                     break
 
