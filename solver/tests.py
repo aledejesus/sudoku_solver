@@ -199,6 +199,79 @@ class SudokuPuzzleTestCase(TestCase):
         act_vals_aft = self.puzzle.get_known_vals_qty()
         self.assertEqual(EXP_VALS_AFT, act_vals_aft)
 
+    def test_get_row_q(self):
+        """ Tests that get_row_q returns correct Q object """
+        DESIRED_ROW = 0
+        row_q = self.puzzle.get_row_q(DESIRED_ROW)
+
+        self.assertEqual(len(row_q.children), 1)
+        self.assertEqual(row_q.children[0][0], 'row')
+        self.assertEqual(row_q.children[0][1], DESIRED_ROW)
+
+    def test_get_col_q(self):
+        """ Tests that get_col_q returns correct Q object """
+        DESIRED_COL = 1
+        col_q = self.puzzle.get_col_q(DESIRED_COL)
+
+        self.assertEqual(len(col_q.children), 1)
+        self.assertEqual(col_q.children[0][0], 'col')
+        self.assertEqual(col_q.children[0][1], DESIRED_COL)
+
+    def test_get_sqr_q(self):
+        """ Tests that get_col_q returns correct Q object """
+        I = 1  # row zero index
+        J = 3  # col zero index
+        EXP_CHILDREN = [
+            ('row__gte', models.SQUARE_DEFS[1][0]),
+            ('col__gte', models.SQUARE_DEFS[1][1]),
+            ('row__lte', models.SQUARE_DEFS[1][2]),
+            ('col__lte', models.SQUARE_DEFS[1][3])]
+        # ^ expected sqr_q children
+
+        sqr_q = self.puzzle.get_sqr_q(I, J)
+
+        for child in sqr_q.children:
+            self.assertTrue(child in EXP_CHILDREN)
+
+    def test_get_related_cells_filled_true(self):
+        """ Tests that get_related_cells returns only filled PuzzleCells. """
+        EXP_REL_CELL_CNT = 14  # expected number of related cells
+        self.puzzle.create_puzzle_cells()
+        first_cell = models.PuzzleCell.objects.filter(
+            puzzle=self.puzzle, row=0, col=0).first()
+        related_cells = self.puzzle.get_related_cells(
+            first_cell, filled=True)
+
+        self.assertEqual(len(related_cells), EXP_REL_CELL_CNT)
+        self.assertEqual(type(related_cells[0]), models.PuzzleCell)
+        self.assertTrue(first_cell not in related_cells)
+
+    def test_get_related_cells_filled_false(self):
+        """ Tests that get_related_cells returns only unfilled PuzzleCells. """
+        EXP_REL_CELL_CNT = 6  # expected number of related cells
+        self.puzzle.create_puzzle_cells()
+        first_cell = models.PuzzleCell.objects.filter(
+            puzzle=self.puzzle, row=0, col=0).first()
+        related_cells = self.puzzle.get_related_cells(
+            first_cell, filled=False)
+
+        self.assertEqual(len(related_cells), EXP_REL_CELL_CNT)
+        self.assertEqual(type(related_cells[0]), models.PuzzleCell)
+        self.assertTrue(first_cell not in related_cells)
+
+    def test_get_related_cells_filled_none(self):
+        """ Tests that get_related_cells returns all related PuzzleCells. """
+        EXP_REL_CELL_CNT = 20  # expected number of related cells
+        self.puzzle.create_puzzle_cells()
+        first_cell = models.PuzzleCell.objects.filter(
+            puzzle=self.puzzle, row=0, col=0).first()
+        related_cells = self.puzzle.get_related_cells(
+            first_cell, filled=None)
+
+        self.assertEqual(len(related_cells), EXP_REL_CELL_CNT)
+        self.assertEqual(type(related_cells[0]), models.PuzzleCell)
+        self.assertTrue(first_cell not in related_cells)
+
 
 class PuzzleCellTestCase(TestCase):
     def setUp(self):
