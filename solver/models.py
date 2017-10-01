@@ -94,10 +94,52 @@ class SudokuPuzzle(models.Model):
         self.solving_time = end - start
         self.save()
 
+    def get_row_q(self, i):
+        """ Gets the row's Q object
+
+            Args:
+                - i (int): row zero index
+
+            Returns:
+                - django.db.models.Q: filter params to get
+                    the ith row.
+        """
+        return Q(row=i)
+
     def get_row(self, i):
+        """ Gets the known numbers in the ith row. Doesn't use
+            get_row_q to avoid unnecessary database hit.
+
+            Args:
+                - i (int): row zero index
+
+            Returns:
+                - list: contains the row's known numbers
+        """
         return utils.remove_zeroes(self.solved_puzzle[i])
 
+    def get_col_q(self, j):
+        """ Gets the column's Q object.
+
+            Args:
+                - j (int): column's zero index
+
+            Returns:
+                - django.db.models.Q: filter params to get
+                    the ith column.
+        """
+        return Q(col=j)
+
     def get_col(self, j):
+        """ Gets the known numbers in the jth column. Doesn't use
+            get_col_q to avoid unnecessary database hit.
+
+            Args:
+                - j (int): column zero index
+
+            Returns:
+                - list: contains the column's known numbers
+        """
         np_arr = np.array(self.solved_puzzle)
         return utils.remove_zeroes(np_arr[:, j].tolist())
 
@@ -132,7 +174,33 @@ class SudokuPuzzle(models.Model):
 
         return sqr_boundaries
 
+    def get_sqr_q(self, i, j):
+        """ Gets the square's Q object.
+
+            Args:
+                - i (int): row zero index
+                - j (int): column zero index
+
+            Returns:
+                - django.db.models.Q: filter params to get
+                    the square of i x j.
+        """
+        sqr_def = self.get_sqr_def(i, j)
+
+        return Q(row__gte=sqr_def[0],  col__gte=sqr_def[1]) & \
+            Q(row__lte=sqr_def[2], col__lte=sqr_def[3])
+
     def get_sqr(self, i, j):
+        """ Gets the square's known values. Doesn't use
+            qet_sqr_q to avoid extra database hit.
+
+            Args:
+                - i (int): row zero index
+                - j (int): column zero index
+
+            Returns:
+                - list: contains known square numbers.
+        """
         sqr_boundaries = self.get_sqr_def(i, j)
 
         np_arr = np.array(self.solved_puzzle)
@@ -181,15 +249,41 @@ class SudokuPuzzle(models.Model):
                     self.missing_vals_pos.append(list([i, j]))
 
     def get_known_vals_qty(self):
-        # returns the quantity of known values in the puzzle
-        qty = len(utils.remove_zeroes(np.ravel(
+        """ Gets the quantity of known values in the puzzle.
+
+            No arguments nor return values.
+        """
+        return len(utils.remove_zeroes(np.ravel(
             self.solved_puzzle).tolist()))
 
-        return qty
+    def get_related_cells(self, cell, filled=False):
+        """ Gets the related cells of a given cell.
+
+            Args:
+                - cell (PuzzleCell)
+                - filled (bool or None): True if only filled cells
+                    are desired. False if only unfilled cells are desired.
+                    None if all related cells are desired.
+
+            Returns:
+                - django.db.models.query.QuerySet: contains all
+                    related cell objects.
+        """
+        gen_dict = {'puzzle': self}
+
+        if filled in [True, False]:
+            gen_dict['filled'] = filled
+
+        q_gen = Q(**gen_dict)
+
+        return PuzzleCell.objects.filter(
+            q_gen, (self.get_row_q(cell.row) | self.get_col_q(cell.col) |
+                    self.get_sqr_q(cell.row, cell.col))).\
+            distinct().exclude(pk=cell.pk)
 
     def rec_sca_call(self, cell):
         """
-        Recursive single candidate algorithm (single_cand_algo) call
+            Recursive single candidate algorithm (single_cand_algo) call.
         """
 
         cell_poss = cell.determine_possibilities()
@@ -200,18 +294,7 @@ class SudokuPuzzle(models.Model):
                 vals_found = True
                 self.single_cand_algo(cell)
 
-                sqr_def = self.get_sqr_def(cell.row, cell.col)
-                q_gen = Q(puzzle=self, filled=False)
-                q_col = Q(col=cell.col)
-                q_row = Q(row=cell.row)
-                q_sqr = Q(row__gte=sqr_def[0],  col__gte=sqr_def[1]) & \
-                    Q(row__lte=sqr_def[2], col__lte=sqr_def[3])
-
-                related_cells = PuzzleCell.objects.filter(
-                    q_gen, (q_col | q_row | q_sqr)).\
-                    distinct().exclude(pk=cell.pk)
-
-                for related_cell in list(related_cells):
+                for related_cell in list(self.get_related_cells(cell)):
                     if self.solved_puzzle[related_cell.row][
                             related_cell.col] == 0:
                         self.rec_sca_call(related_cell)
