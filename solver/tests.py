@@ -4,6 +4,7 @@ from factories import (
 import numpy as np
 from . import models
 from .templatetags.return_item import return_item
+from django.db.models import Q
 
 
 class SudokuPuzzleTestCase(TestCase):
@@ -232,18 +233,29 @@ class SudokuPuzzleTestCase(TestCase):
         j = 0
         self.puzzle.create_puzzle_cells(auto_fill=False)
 
-        fru_cells = models.PuzzleCell.objects.filter(
-            puzzle=self.puzzle, row=i, filled=False)
-        # ^ first row unsolved cells
+        q_gen = Q(puzzle=self.puzzle, filled=False)
+        q_col = self.puzzle.get_col_q(i)
+        q_row = self.puzzle.get_row_q(j)
+        q_sqr = self.puzzle.get_sqr_q(i, j)
 
-        first_cell = fru_cells.get(col=j)
+        col_cells = models.PuzzleCell.objects.filter(
+            q_gen, q_col)
+        row_cells = models.PuzzleCell.objects.filter(
+            q_gen, q_row)
+        sqr_cells = models.PuzzleCell.objects.filter(
+            q_gen, q_sqr)
+        related_cells_lst = list(col_cells)
+        related_cells_lst.extend(list(row_cells))
+        related_cells_lst.extend(list(sqr_cells))
+
+        first_cell = row_cells.get(col=j)
         self.assertTrue(first_cell)  # asserts cell (i,j) is in qs
-        FC_UNIQUE_POSS = [1, 9]  # first cell unique possibilities
+        FC_UNIQUE_POSS = [3, 9]  # first cell unique possibilities
 
         # Remove FC_UNIQUE_POSS from the possibilities of all cells
         # except from the possibilities of cell in (i,j)
-        for cell in list(fru_cells):
-            if cell.row != i and cell.col != j:
+        for cell in related_cells_lst:
+            if cell.pk != first_cell.pk:
                 for u_poss in FC_UNIQUE_POSS:
                     if u_poss in cell.possibilities:
                         cell.possibilities.remove(u_poss)
@@ -251,6 +263,44 @@ class SudokuPuzzleTestCase(TestCase):
 
         with self.assertRaises(ValueError):
             self.puzzle.single_pos_algo(first_cell)
+
+    def test_single_pos_algo_no_unique_poss(self):
+        i = 0
+        j = 0
+        self.puzzle.create_puzzle_cells(auto_fill=False)
+
+        q_gen = Q(puzzle=self.puzzle, filled=False)
+        q_col = self.puzzle.get_col_q(i)
+        q_row = self.puzzle.get_row_q(j)
+        q_sqr = self.puzzle.get_sqr_q(i, j)
+
+        col_cells = models.PuzzleCell.objects.filter(
+            q_gen, q_col)
+        row_cells = models.PuzzleCell.objects.filter(
+            q_gen, q_row)
+        sqr_cells = models.PuzzleCell.objects.filter(
+            q_gen, q_sqr)
+        related_cells_lst = list(col_cells)
+        related_cells_lst.extend(list(row_cells))
+        related_cells_lst.extend(list(sqr_cells))
+
+        first_cell = row_cells.get(col=j)
+        self.assertTrue(first_cell)  # asserts cell (i,j) is in qs
+        FC_UNIQUE_POSS = range(1, 10)
+
+        # Remove FC_UNIQUE_POSS from the possibilities of all cells
+        # except from the possibilities of cell in (i,j)
+        for cell in related_cells_lst:
+            if cell.pk != first_cell.pk:
+                cell.possibilities = list(FC_UNIQUE_POSS)
+                cell.save()
+
+        self.puzzle.single_pos_algo(first_cell)
+
+        first_cell = models.PuzzleCell.objects.get(
+            puzzle=self.puzzle, row=i, col=j)
+
+        self.assertFalse(first_cell.filled)
 
     def test_get_row_q(self):
         """ Tests that get_row_q returns correct Q object """

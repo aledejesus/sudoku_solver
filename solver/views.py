@@ -68,9 +68,6 @@ def test_solver(request):
             "unsolved": unsolved_disp[test],
             "solved": puzzle.solved_puzzle,
             "passed_test": passed_test[test],
-            "solving_time": puzzle.solving_time
-        }
-
-    # TODO: DELETE PUZZLES FROM DATABASE AFTER TEST
+            "solving_time": puzzle.solving_time}
 
     return render(request, 'test_solver.html', context)
