@@ -64,7 +64,7 @@ class SudokuPuzzle(models.Model):
             # ^ this is done so the determine_possibilities method
             # uses the updated solved_puzzle
             qty_vals_bef = self.get_known_vals_qty()
-            # known vals qty BEFORE running single_cand_algo
+            # known vals qty BEFORE running solving methods
 
             puzzle_cells = None
 
@@ -77,12 +77,22 @@ class SudokuPuzzle(models.Model):
 
                     if found:
                         break
+                else:
+                    break
 
+            while True:
+                puzzle_cells = PuzzleCell.objects.select_related(
+                    'puzzle').filter(puzzle=self, filled=False)
+
+                for cell in list(puzzle_cells):
+                    found = self.single_pos_algo(cell)
+                    if found:
+                        break
                 else:
                     break
 
             qty_vals_aft = self.get_known_vals_qty()
-            # known vals qty AFTER running single_cand_algo
+            # known vals qty AFTER running solving methods
 
             if not (qty_vals_bef < qty_vals_aft):
                 break
@@ -301,15 +311,53 @@ class SudokuPuzzle(models.Model):
 
         return vals_found
 
-    # def single_pos_algo(self, i, j):
-        # single position algorithm
+    def single_pos_algo(self, cell):
+        """
+            Applies the single position algorithm to the provided cell.
 
-        # cell_poss = self.get_possibilities(puzzle, i, j)
+            Args:
+                - cell (PuzzleCell)
 
-        # for poss in cell_poss:
-        #     qs = PuzzleCell.objects.filter(
-        #         puzzle_pk=self.pk, possibilities='[]',
-        #         position__startswith=str(i))
+            Returns:
+                - bool: True if values found
+        """
+
+        q_gen = Q(puzzle=self)
+        q_col = self.get_col_q(cell.col)
+        q_row = self.get_row_q(cell.row)
+        q_sqr = self.get_sqr_q(cell.col, cell.row)
+
+        col_cells = PuzzleCell.objects.filter(
+            q_gen, q_col).exclude(pk=cell.pk)
+        row_cells = PuzzleCell.objects.filter(
+            q_gen, q_row).exclude(pk=cell.pk)
+        sqr_cells = PuzzleCell.objects.filter(
+            q_gen, q_sqr).exclude(pk=cell.pk)
+        related_cells_lst = [
+            list(col_cells),
+            list(row_cells),
+            list(sqr_cells)]
+
+        for related_cells in related_cells_lst:
+            poss = set(cell.possibilities)
+
+            for related_cell in related_cells:
+                if related_cell.filled:
+                    poss = poss.difference(set([related_cell.value]))
+                else:
+                    poss = poss.difference(set(related_cell.possibilities))
+                # len(poss) == 0 means no unique possibilities
+                if len(poss) == 0:
+                    break
+
+            else:
+                if len(poss) == 1:
+                    cell.possibilities = list(poss)
+                    self.single_cand_algo(cell)
+                    return True
+
+                else:
+                    raise ValueError("Invalid number of unique possiblities")
 
 
 class PuzzleCell(models.Model):
