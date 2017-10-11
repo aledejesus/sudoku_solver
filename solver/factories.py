@@ -18,8 +18,8 @@ class SudokuPuzzleFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.SudokuPuzzle
 
-    unsolved_puzzle = factory.LazyAttribute(
-        lambda obj: [list(item) for item in EASY_PUZZLE])
+    unsolved_puzzle = factory.LazyFunction(
+        lambda: [list(item) for item in EASY_PUZZLE])
     solved_puzzle = factory.LazyAttribute(
         lambda obj: copy.deepcopy(obj.unsolved_puzzle))
 
