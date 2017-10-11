@@ -1,6 +1,6 @@
 from django.test import TestCase, Client
 from factories import (
-    SudokuPuzzleFactory, PuzzleCellFactory, prov_puzzle_factory)
+    SudokuPuzzleFactory, PuzzleCellFactory)
 import numpy as np
 from . import models
 from .templatetags.return_item import return_item
@@ -9,8 +9,7 @@ from django.db.models import Q
 
 class SudokuPuzzleTestCase(TestCase):
     def setUp(self):
-        # self.puzzle = SudokuPuzzleFactory.create()
-        self.puzzle = prov_puzzle_factory()
+        self.puzzle = SudokuPuzzleFactory.create()
 
     def test_str_with_saved_puzzle(self):
         pk = self.puzzle.pk
@@ -378,8 +377,8 @@ class SudokuPuzzleTestCase(TestCase):
 
 class PuzzleCellTestCase(TestCase):
     def setUp(self):
-        # self.puzzle = SudokuPuzzleFactory.create()
-        self.puzzle = prov_puzzle_factory()
+        self.puzzle = SudokuPuzzleFactory.create()
+        # self.puzzle = prov_puzzle_factory()
         self.cell = PuzzleCellFactory(puzzle=self.puzzle)
 
     def test_str(self):
