@@ -1,23 +1,47 @@
 .grid {
-  width: 362px;
-  /*height: 378px;*/
-  border-width: 1px;
+  width: 40vw;
+  height: 40vw;
+  border-width: 0.4vw 0vw 0vw 0.4vw;
   border-style: solid;
   border-color: black;
   border-spacing: 0px;
-  margin: 0px;
+}
+
+.grid .puzzle_row:nth-child(3n) {
+  border-bottom-width: 0.4vw;
+}
+
+.puzzle_row {
   padding: 0px;
-  font-size: 0px;
+  margin: 0px;
+  height: 11.11%;
+  border-bottom: 0.2vw solid black;
+  border-spacing: 0px;
+}
+
+.puzzle_row .number_slot:nth-child(3n) {
+  border-right-width: 0.4vw;
 }
 
 .number_slot {
+  padding: 0px;
+  margin: 0px;
   display: inline-block;
-  width: 40px;
-  height: 40px;
-  border-width: 1px;
-  border-style: solid;
-  border-color: black;
+  width: 11.11%;
+  height: 100%;
+  border-right: 0.2vw solid black;
+  border-spacing: 0px;
   font-size: 30px;
+  float:left;
+}
+
+/* Shading to sqr 0, 2, 4, 6 and 8 */
+.puzzle_row:nth-child(-n+3) .number_slot:nth-child(-n+3),
+.puzzle_row:nth-child(-n+3) .number_slot:nth-last-child(-n+3),
+.puzzle_row:nth-last-child(-n+3) .number_slot:nth-child(-n+3),
+.puzzle_row:nth-last-child(-n+3) .number_slot:nth-last-child(-n+3),
+.puzzle_row:nth-child(n+4):nth-child(-n+6) .number_slot:nth-child(n+4):nth-child(-n+6) {
+  background-color: rgb(235, 235, 235);
 }
 
 /*FIGURE OUT WHY !IMPORTANT IS NEEDED*/
