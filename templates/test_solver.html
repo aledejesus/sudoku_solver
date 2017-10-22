@@ -1,37 +1,18 @@
 {% extends "base.html" %}
 {% load staticfiles %}
 {% load return_item %}
+{% load sudoku_grid %}
 
 {% block content %}
-<center>
+<div class="centered">
   <h3 style="display: block">Test solver</h3>
+  <div class="col-lg-1"></div>
   {% for key, value in tests.items %}
-  <div class="col-md-4">
+  <div class="col-xs-12 col-md-6 col-lg-5">
     <h4 syle="display: block;">{{ key|capfirst }}</h4>
-    <div id="id_grid_{{ key }}_unsolved" class="grid">
-      {% for i in "012345678" %}
-        {% for j in "012345678" %}
-          <div class="number_slot">
-            <center>
-              <span style="position: absolute;">{{ value.unsolved|return_item:i|return_item:j }}</span>
-            </center>
-          </div>
-        {% endfor %}
-      {% endfor %}
-    </div>
-    <br>
-    <br>
-    <div id="id_grid_{{ key }}_solved" class="grid">
-      {% for i in "012345678" %}
-        {% for j in "012345678" %}
-          <div class="number_slot">
-            <center>
-              <span style="position: absolute;">{{ value.solved|return_item:i|return_item:j }}</span>
-            </center>
-          </div>
-        {% endfor %}
-      {% endfor %}
-    </div>
+    {% sudoku_grid grid_id="id_grid_{{key}}_unsolved" key_id=key numbers=value.unsolved %}
+    <div style="height: 40px;"></div>
+    {% sudoku_grid grid_id="id_grid_{{key}}_solved" key_id=key numbers=value.solved %}
     <h4>
       {{ key|capfirst }} test passed: {{ value.passed_test }}
     </h4>
@@ -40,6 +21,7 @@
     </h4>
   </div>
   {% endfor %}
-</center>
+  <div class="col-lg-1"></div>
+</div>
 
 {% endblock %}

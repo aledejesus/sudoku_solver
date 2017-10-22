@@ -1,23 +1,13 @@
 {% extends "base.html" %}
 {% load staticfiles %}
+{% load sudoku_grid %}
 
 {% block content %}
-<center>
+<div class="col-xs-6 col-xs-offset-3 centered">
   <h3 style="display: block">Input numbers</h3>
+  {% sudoku_grid grid_id="id_grid" %}
+</div>
 
-  <!-- [START] PUT GRID IN A DIFFERENT HTML FILE. IMPORT IT -->
-  <div id="id_grid" class="grid">
-    {% for i in "012345678" %}
-      <div class="puzzle_row">
-      {% for i in "012345678" %}
-        <div class="number_slot">
-        </div>
-      {% endfor %}
-      </div>
-    {% endfor %}
-  </div>
-  <!-- [START] PUT GRID IN A DIFFERENT HTML FILE. IMPORT IT -->
-</center>
 <div id="example"></div>
 {% endblock %}
 
