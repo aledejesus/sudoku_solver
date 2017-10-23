@@ -4,6 +4,7 @@ from factories import (
 import numpy as np
 from . import models
 from .templatetags.return_item import return_item
+from .templatetags.sudoku_grid import sudoku_grid
 from django.db.models import Q
 
 
@@ -454,7 +455,7 @@ class SolverViewsTestCase(TestCase):
         self.assertEqual(len(correct_ids), len(TESTS)*2)
 
 
-class TemplateTagsTestCase(TestCase):
+class ReturnItemFilterTestCase(TestCase):
     def test_return_item_returns_space(self):
         arr = [0, 1, 2]
         i = 0
@@ -475,3 +476,41 @@ class TemplateTagsTestCase(TestCase):
 
         res = return_item(arr, i)
         self.assertTrue(res is None)
+
+
+class SudokuGridTemplateTagTestCase(TestCase):
+    def test_sudoku_grid_without_key_without_numbers(self):
+        """ Tests sudoku_grid without key and without numbers. """
+        grid_id = "grid_id"
+
+        res = sudoku_grid(grid_id)
+        self.assertTrue(res["grid_id"] == "grid_id")
+        self.assertTrue(len(res["numbers"]) == 0)
+
+    def test_sudoku_grid_with_key_without_numbers(self):
+        """ Tests sudoku_grid with key and without numbers. """
+        grid_id = "grid_id_{{key}}"
+        key = "test"
+
+        res = sudoku_grid(grid_id, key)
+        self.assertTrue(res["grid_id"] == "grid_id_%s" % key)
+        self.assertTrue(len(res["numbers"]) == 0)
+
+    def test_sudoku_grid_without_key_with_numbers(self):
+        """ Tests sudoku_grid without key and with numbers. """
+        grid_id = "grid_id"
+        numbers = [1, 2, 3]
+
+        res = sudoku_grid(grid_id, numbers=numbers)
+        self.assertTrue(res["grid_id"] == "grid_id")
+        self.assertTrue(res["numbers"] == numbers)
+
+    def test_sudoku_grid_with_key_with_numbers(self):
+        """ Tests sudoku_grid with key and with numbers. """
+        grid_id = "grid_id_{{key}}"
+        key = "test"
+        numbers = [1, 2, 3]
+
+        res = sudoku_grid(grid_id, key, numbers)
+        self.assertTrue(res["grid_id"] == "grid_id_%s" % key)
+        self.assertTrue(res["numbers"] == numbers)

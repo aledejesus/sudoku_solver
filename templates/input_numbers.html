@@ -1,21 +1,12 @@
 {% extends "base.html" %}
 {% load staticfiles %}
+{% load sudoku_grid %}
 
 {% block content %}
-<center>
+<div class="col-xs-6 col-xs-offset-3 centered">
   <h3 style="display: block">Input numbers</h3>
-
-  <!-- [START] PUT GRID IN A DIFFERENT HTML FILE. IMPORT IT -->
-  <div id="id_grid" class="grid">
-    {% for i in "012345678" %}
-      {% for i in "012345678" %}
-        <div class="number_slot">
-        </div>
-      {% endfor %}
-    {% endfor %}
-  </div>
-  <!-- [START] PUT GRID IN A DIFFERENT HTML FILE. IMPORT IT -->
-</center>
+  {% sudoku_grid grid_id="id_grid" %}
+</div>
 
 <div id="example"></div>
 {% endblock %}
@@ -23,24 +14,20 @@
 {% block scripts %}
 <script>
   var set_ids = function() {
-    var col = 0;
-    var row = 0;
-    var number_slots = document.getElementById('id_grid').children;
+    var rows = document.getElementById('id_grid').children;
+    var cnt = 0;
 
-    for (var i = 0; i < number_slots.length; i++){
-      number_slots[i].id = i + '_' + row + col;
-
-      if (++col >= 9){
-        col = 0;
-        row++;
+    for (var i = 0; i < rows.length; i++){
+      number_slots = rows[i].children;
+      for (var j = 0; j < number_slots.length; j++){
+        number_slots[j].id = cnt++ + '_' + i + j;
+        console.log(number_slots[j].id)
       }
     }
-
-    // console.log('SETTING IDS')
   }
 
   set_ids();
 </script>
 
-<script type="text/babel" src="{% static 'js/main.js' %}"></script>
+<!-- <script type="text/babel" src="{% static 'js/main.js' %}"></script> -->
 {% endblock %}

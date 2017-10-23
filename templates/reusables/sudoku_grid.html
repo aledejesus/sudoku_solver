@@ -1,0 +1,15 @@
+{% load return_item %}
+
+<div id="{{grid_id}}" class="grid">
+  {% for i in "012345678" %}
+    <div class="puzzle_row">
+    {% for j in "012345678" %}
+      <div class="number_slot">
+        {% if numbers %}
+          <span>{{ numbers|return_item:i|return_item:j }}</span>
+        {% endif %}
+      </div>
+    {% endfor %}
+    </div>
+  {% endfor %}
+</div>
