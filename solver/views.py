@@ -13,7 +13,7 @@ def input_numbers(request):
 
 
 def test_solver(request):
-    tests = ['easy', 'medium']
+    tests = ['easy', 'medium', 'hard']
     unsolved_db = {}
     solved_db = {}
     unsolved_disp = {}
