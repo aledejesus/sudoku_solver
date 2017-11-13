@@ -32,9 +32,23 @@ class SudokuPuzzleTestCase(TestCase):
 
         self.puzzle.solve()
         self.assertTrue(self.puzzle.solved)
-        known_vals = self.puzzle.get_known_vals_qty()
-        self.assertTrue(known_vals == 81)
+        self.assertTrue(self.puzzle.correct)
         self.assertTrue(self.puzzle.solving_time > 0.0)
+
+    def test_puzzle_solve_incorrect(self):
+        self.assertFalse(self.puzzle.solved)
+        known_vals = self.puzzle.get_known_vals_qty()
+        self.assertTrue(known_vals < 81)
+
+        lst = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+        for i in range(3):  # replace first 3 rows with lst
+            self.puzzle.unsolved_puzzle[i] = list(lst)
+
+        self.puzzle.save()
+        self.puzzle.solve()
+        self.assertTrue(self.puzzle.solved)
+        self.assertFalse(self.puzzle.correct)
 
     def test_puzzle_not_solved(self):
         self.assertFalse(self.puzzle.solved)
@@ -43,14 +57,13 @@ class SudokuPuzzleTestCase(TestCase):
 
         lst = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-        for i in range(3):  # replace fisrt 3 rows with lst
+        for i in range(7):  # replace first 3 rows with lst
             self.puzzle.unsolved_puzzle[i] = list(lst)
 
         self.puzzle.save()
         self.puzzle.solve()
-        known_vals = self.puzzle.get_known_vals_qty()
-        self.assertTrue(known_vals < 81)
         self.assertFalse(self.puzzle.solved)
+        self.assertFalse(self.puzzle.correct)
 
     def test_get_row(self):
         expected_row = [7, 4, 2, 8]
@@ -375,11 +388,76 @@ class SudokuPuzzleTestCase(TestCase):
         self.assertEqual(type(related_cells[0]), models.PuzzleCell)
         self.assertTrue(first_cell not in related_cells)
 
+    def test_is_correct_unsolved_success1(self):
+        self.assertTrue(self.puzzle.is_correct())
+        self.assertTrue(self.puzzle.correct)
+
+    def test_is_correct_unsolved_success2(self):
+        lst = [0, 0, 0, 0, 0, 1, 0, 0, 0]
+        self.puzzle.solved_puzzle[0] = list(lst)
+        self.puzzle.save()
+
+        self.assertTrue(self.puzzle.is_correct())
+        self.assertTrue(self.puzzle.correct)
+
+    def test_is_correct_unsolved_success3(self):
+        lst = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.puzzle.solved_puzzle[0] = list(lst)
+        self.puzzle.save()
+
+        self.assertTrue(self.puzzle.is_correct())
+        self.assertTrue(self.puzzle.correct)
+
+    def test_is_correct_unsolved_failure1(self):
+        lst = [10, 12, 20, 0, 0, 0, 0, 0, 0]
+        self.puzzle.solved_puzzle[0] = list(lst)
+        self.puzzle.save()
+
+        self.assertFalse(self.puzzle.is_correct())
+        self.assertFalse(self.puzzle.correct)
+
+    def test_is_correct_unsolved_failure2(self):
+        lst = [0, 0, 0, 0, 1, 1, 0, 0, 0]
+        self.puzzle.solved_puzzle[0] = list(lst)
+        self.puzzle.save()
+
+        self.assertFalse(self.puzzle.is_correct())
+        self.assertFalse(self.puzzle.correct)
+
+    def test_is_correct_unsolved_failure3(self):
+        lst = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        for i in range(7):  # replace first 7 rows with lst
+            self.puzzle.solved_puzzle[i] = list(lst)
+        self.puzzle.save()
+
+        self.assertFalse(self.puzzle.is_correct())
+        self.assertFalse(self.puzzle.correct)
+
+    def test_is_correct_solved_success(self):
+        self.puzzle.solve()
+        self.assertTrue(self.puzzle.is_correct())
+        self.assertTrue(self.puzzle.correct)
+
+    def test_is_correct_solved_failure1(self):
+        self.puzzle.solve()
+        self.puzzle.solved_puzzle[0][7:] = [1, 1]
+        self.puzzle.save()
+
+        self.assertFalse(self.puzzle.is_correct())
+        self.assertFalse(self.puzzle.correct)
+
+    def test_is_correct_solved_failure2(self):
+        self.puzzle.solve()
+        self.puzzle.solved_puzzle[0][8] = 0
+        self.puzzle.save()
+
+        self.assertFalse(self.puzzle.is_correct())
+        self.assertFalse(self.puzzle.correct)
+
 
 class PuzzleCellTestCase(TestCase):
     def setUp(self):
         self.puzzle = SudokuPuzzleFactory.create()
-        # self.puzzle = prov_puzzle_factory()
         self.cell = PuzzleCellFactory(puzzle=self.puzzle)
 
     def test_str(self):

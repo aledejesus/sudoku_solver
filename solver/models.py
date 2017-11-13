@@ -18,10 +18,10 @@ SQUARE_DEFS = (
     (3, 6, 5, 8),  # SQR5
     (6, 0, 8, 2),  # SQR6
     (6, 3, 8, 5),  # SQR7
-    (6, 6, 8, 8)  # SQR8
-)
+    (6, 6, 8, 8))  # SQR8
 
 ALL_POSS = ImmutableSet(range(1, 10))  # all possibilities
+MIN_CLUES = 17  # minimum clue count
 
 
 class SudokuPuzzle(models.Model):
@@ -36,6 +36,7 @@ class SudokuPuzzle(models.Model):
             default=list()),
         size=9, blank=True, null=True, default=list())
     solved = models.BooleanField(default=False)
+    correct = models.BooleanField(default=True)
     missing_vals_pos = ArrayField(
         base_field=ArrayField(
                 base_field=models.IntegerField(), size=2,
@@ -51,9 +52,14 @@ class SudokuPuzzle(models.Model):
 
     def solve(self):
         #  MAIN SOLVING FLOW. CALL ALGO FUNCTIONS/METHODS FROM HERE
-        start = timer()
         self.solved_puzzle = copy.deepcopy(self.unsolved_puzzle)
         self.set_missing_vals_pos()
+
+        if not self.is_correct():
+            self.save()
+            return False
+
+        start = timer()
         self.create_puzzle_cells()
         qty_vals_bef = 0
         qty_vals_aft = 0
@@ -97,12 +103,13 @@ class SudokuPuzzle(models.Model):
             if not (qty_vals_bef < qty_vals_aft):
                 break
 
-        if qty_vals_aft == 81:
-            self.solved = True
-
         end = timer()
         self.solving_time = end - start
+        self.solved = True
+        if not self.is_correct():
+            return False
         self.save()
+        return True
 
     def get_row_q(self, i):
         """ Gets the row's Q object
@@ -358,6 +365,42 @@ class SudokuPuzzle(models.Model):
 
                 else:
                     raise ValueError("Invalid number of unique possiblities")
+
+    def is_correct(self):
+        """
+            Determines if numbers in puzzle don't repeat in the same square,
+            row or col. For solved puzzles also checks if amount of solved
+            cells is 81.
+
+            Args:
+                None
+            Returns:
+                - bool: whether puzzle is correct or not.
+         """
+        if self.get_known_vals_qty() < MIN_CLUES:
+            self.correct = False
+            return False
+
+        for idx in range(9):
+            sqr = self.get_sqr(SQUARE_DEFS[idx][0], SQUARE_DEFS[idx][1])
+            row = self.get_row(idx)
+            col = self.get_col(idx)
+
+            for lst in [sqr, row, col]:
+                unique_vals = set(lst)
+                #
+                # print "LST:"
+                # print lst
+                # print "UNIQUE_VALS:"
+                # print unique_vals
+
+                if not unique_vals.issubset(ALL_POSS) or\
+                        len(lst) != len(unique_vals) or\
+                        (self.solved and (len(unique_vals) != 9)):
+                    self.correct = False
+                    return False
+        self.correct = True
+        return True
 
 
 class PuzzleCell(models.Model):
