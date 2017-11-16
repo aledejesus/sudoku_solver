@@ -379,28 +379,23 @@ class SudokuPuzzle(models.Model):
          """
         if self.get_known_vals_qty() < MIN_CLUES:
             self.correct = False
-            return False
 
-        for idx in range(9):
-            sqr = self.get_sqr(SQUARE_DEFS[idx][0], SQUARE_DEFS[idx][1])
-            row = self.get_row(idx)
-            col = self.get_col(idx)
+        else:
+            for idx in range(9):
+                sqr = self.get_sqr(SQUARE_DEFS[idx][0], SQUARE_DEFS[idx][1])
+                row = self.get_row(idx)
+                col = self.get_col(idx)
 
-            for lst in [sqr, row, col]:
-                unique_vals = set(lst)
-                #
-                # print "LST:"
-                # print lst
-                # print "UNIQUE_VALS:"
-                # print unique_vals
+                for lst in [sqr, row, col]:
+                    unique_vals = set(lst)
 
-                if not unique_vals.issubset(ALL_POSS) or\
-                        len(lst) != len(unique_vals) or\
-                        (self.solved and (len(unique_vals) != 9)):
-                    self.correct = False
-                    return False
-        self.correct = True
-        return True
+                    if not unique_vals.issubset(ALL_POSS) or\
+                            len(lst) != len(unique_vals) or\
+                            (self.solved and (len(unique_vals) != 9)):
+                        self.correct = False
+                        return self.correct
+            self.correct = True
+        return self.correct
 
 
 class PuzzleCell(models.Model):
