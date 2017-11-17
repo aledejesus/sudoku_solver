@@ -20,4 +20,5 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$', include('home.urls')),
     url(r'^solver/', include('solver.urls')),
+    url(r'^silk/', include('silk.urls', namespace='silk')),
 ]
