@@ -1,10 +1,11 @@
-Django==1.9.7
-factory-boy==2.7.0
+Django==1.11.7
+factory-boy==2.9.2
 fake-factory==0.7.2
 ipaddress==1.0.17
-psycopg2==2.6.1
-python-dateutil==2.6.0
+psycopg2==2.7.3.2
+python-dateutil==2.6.1
 six==1.10.0
-flake8==3.2.1
-coverage==4.3.1
+flake8==3.5.0
+coverage==4.4.2
+numpy==1.13.3
 django-silk==1.0.0

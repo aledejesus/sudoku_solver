@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 from django.db import models
-from sets import ImmutableSet
 import numpy as np
 from sudoku_solver import utils
 from django.contrib.postgres.fields import ArrayField
@@ -20,7 +19,7 @@ SQUARE_DEFS = (
     (6, 3, 8, 5),  # SQR7
     (6, 6, 8, 8))  # SQR8
 
-ALL_POSS = ImmutableSet(range(1, 10))  # all possibilities
+ALL_POSS = frozenset(range(1, 10))  # all possibilities
 MIN_CLUES = 17  # minimum clue count
 
 
@@ -47,7 +46,7 @@ class SudokuPuzzle(models.Model):
     def __str__(self):
         try:
             return "pk:%i - solved:%s" % (self.pk, self.solved)
-        except:
+        except TypeError:
             return "pk:unsaved - solved:%s" % self.solved
 
     def solve(self):
@@ -399,7 +398,8 @@ class SudokuPuzzle(models.Model):
 
 
 class PuzzleCell(models.Model):
-    puzzle = models.ForeignKey(SudokuPuzzle, default=None)
+    puzzle = models.ForeignKey(
+        SudokuPuzzle, default=None, on_delete=models.CASCADE)
     value = models.IntegerField(default=0, blank=True, null=True)
     possibilities = ArrayField(
         base_field=models.IntegerField(), size=9,
