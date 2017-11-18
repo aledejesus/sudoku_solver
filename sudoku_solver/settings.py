@@ -130,3 +130,6 @@ STATIC_ROOT = 'staticfiles'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
+
+# Silk
+SILKY_PYTHON_PROFILER = True

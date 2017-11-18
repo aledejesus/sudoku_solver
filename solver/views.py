@@ -2,6 +2,7 @@ from django.shortcuts import render
 from .models import SudokuPuzzle
 from collections import OrderedDict
 import numpy as np
+from silk.profiling.profiler import silk_profile
 
 
 def choose_method(request):
@@ -12,6 +13,7 @@ def input_numbers(request):
     return render(request, 'input_numbers.html')
 
 
+@silk_profile()
 def test_solver(request):
     tests = ['easy', 'medium', 'hard']
     unsolved_db = {}

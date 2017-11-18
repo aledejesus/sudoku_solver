@@ -6,6 +6,7 @@ from django.contrib.postgres.fields import ArrayField
 import copy
 from timeit import default_timer as timer
 from django.db.models import Q
+from silk.profiling.profiler import silk_profile
 
 SQUARE_DEFS = (
     # (first_cell_row, first_cell_col, last_cell_row, last_cell_col) # SQR#
@@ -43,12 +44,14 @@ class SudokuPuzzle(models.Model):
         blank=True, null=True)
     solving_time = models.FloatField(default=float(0.0))
 
+    @silk_profile()
     def __str__(self):
         try:
             return "pk:%i - solved:%s" % (self.pk, self.solved)
         except TypeError:
             return "pk:unsaved - solved:%s" % self.solved
 
+    @silk_profile()
     def solve(self):
         #  MAIN SOLVING FLOW. CALL ALGO FUNCTIONS/METHODS FROM HERE
         self.solved_puzzle = copy.deepcopy(self.unsolved_puzzle)
@@ -110,6 +113,7 @@ class SudokuPuzzle(models.Model):
         self.save()
         return True
 
+    @silk_profile()
     def get_row_q(self, i):
         """ Gets the row's Q object
 
@@ -122,6 +126,7 @@ class SudokuPuzzle(models.Model):
         """
         return Q(row=i)
 
+    @silk_profile()
     def get_row(self, i):
         """ Gets the known numbers in the ith row. Doesn't use
             get_row_q to avoid unnecessary database hit.
@@ -134,6 +139,7 @@ class SudokuPuzzle(models.Model):
         """
         return utils.remove_zeroes(self.solved_puzzle[i])
 
+    @silk_profile()
     def get_col_q(self, j):
         """ Gets the column's Q object.
 
@@ -146,6 +152,7 @@ class SudokuPuzzle(models.Model):
         """
         return Q(col=j)
 
+    @silk_profile()
     def get_col(self, j):
         """ Gets the known numbers in the jth column. Doesn't use
             get_col_q to avoid unnecessary database hit.
@@ -159,6 +166,7 @@ class SudokuPuzzle(models.Model):
         np_arr = np.array(self.solved_puzzle)
         return utils.remove_zeroes(np_arr[:, j].tolist())
 
+    @silk_profile()
     def get_sqr_def(self, i, j):
         sqr_boundaries = [0, 0, 0, 0]
 
@@ -190,6 +198,7 @@ class SudokuPuzzle(models.Model):
 
         return sqr_boundaries
 
+    @silk_profile()
     def get_sqr_q(self, i, j):
         """ Gets the square's Q object.
 
@@ -206,6 +215,7 @@ class SudokuPuzzle(models.Model):
         return Q(row__gte=sqr_def[0],  col__gte=sqr_def[1]) & \
             Q(row__lte=sqr_def[2], col__lte=sqr_def[3])
 
+    @silk_profile()
     def get_sqr(self, i, j):
         """ Gets the square's known values. Doesn't use
             qet_sqr_q to avoid extra database hit.
@@ -227,6 +237,7 @@ class SudokuPuzzle(models.Model):
         # np.ravel puts array values in a 1D list
         return utils.remove_zeroes(np.ravel(sqr).tolist())
 
+    @silk_profile()
     def create_puzzle_cells(self, auto_fill=True):
         for i in range(9):
             for j in range(9):
@@ -245,6 +256,7 @@ class SudokuPuzzle(models.Model):
 
                 cell.save()
 
+    @silk_profile()
     def single_cand_algo(self, cell):
         # single candidate algorithm
 
@@ -256,6 +268,7 @@ class SudokuPuzzle(models.Model):
         cell.save()
         self.save()
 
+    @silk_profile()
     def set_missing_vals_pos(self):
         self.missing_vals_pos = list()
 
@@ -264,6 +277,7 @@ class SudokuPuzzle(models.Model):
                 if self.solved_puzzle[i][j] == 0:
                     self.missing_vals_pos.append(list([i, j]))
 
+    @silk_profile()
     def get_known_vals_qty(self):
         """ Gets the quantity of known values in the puzzle.
 
@@ -272,6 +286,7 @@ class SudokuPuzzle(models.Model):
         return len(utils.remove_zeroes(np.ravel(
             self.solved_puzzle).tolist()))
 
+    @silk_profile()
     def get_related_cells(self, cell, filled=False):
         """ Gets the related cells of a given cell.
 
@@ -297,6 +312,7 @@ class SudokuPuzzle(models.Model):
                     self.get_sqr_q(cell.row, cell.col))).\
             distinct().exclude(pk=cell.pk)
 
+    @silk_profile()
     def rec_sca_call(self, cell):
         """
             Recursive single candidate algorithm (single_cand_algo) call.
@@ -317,6 +333,7 @@ class SudokuPuzzle(models.Model):
 
         return vals_found
 
+    @silk_profile()
     def single_pos_algo(self, cell):
         """
             Applies the single position algorithm to the provided cell.
@@ -365,6 +382,7 @@ class SudokuPuzzle(models.Model):
                 else:
                     raise ValueError("Invalid number of unique possiblities")
 
+    @silk_profile()
     def is_correct(self):
         """
             Determines if numbers in puzzle don't repeat in the same square,
@@ -411,6 +429,7 @@ class PuzzleCell(models.Model):
     def __str__(self):
         return "v:%i - r:%i - c:%i" % (self.value, self.row, self.col)
 
+    @silk_profile()
     def determine_possibilities(self):
         # Determines all possibilities for a given cell
 
@@ -430,6 +449,7 @@ class PuzzleCell(models.Model):
 
         return cell_poss
 
+    @silk_profile()
     def update_possibilities(self, cell_poss):
         self.possibilities = list(cell_poss)
         self.save()
