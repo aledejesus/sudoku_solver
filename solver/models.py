@@ -46,7 +46,7 @@ class SudokuPuzzle(models.Model):
     def __str__(self):
         try:
             return "pk:%i - solved:%s" % (self.pk, self.solved)
-        except:
+        except TypeError:
             return "pk:unsaved - solved:%s" % self.solved
 
     def solve(self):

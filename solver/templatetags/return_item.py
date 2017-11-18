@@ -9,5 +9,5 @@ def return_item(arr, i):
             return " "
         else:
             return arr[int(i)]
-    except:
+    except ValueError:
         return None

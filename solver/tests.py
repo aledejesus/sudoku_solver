@@ -335,8 +335,8 @@ class SudokuPuzzleTestCase(TestCase):
 
     def test_get_sqr_q(self):
         """ Tests that get_col_q returns correct Q object """
-        I = 1  # row zero index
-        J = 3  # col zero index
+        i = 1  # row zero index
+        j = 3  # col zero index
         EXP_CHILDREN = [
             ('row__gte', models.SQUARE_DEFS[1][0]),
             ('col__gte', models.SQUARE_DEFS[1][1]),
@@ -344,7 +344,7 @@ class SudokuPuzzleTestCase(TestCase):
             ('col__lte', models.SQUARE_DEFS[1][3])]
         # ^ expected sqr_q children
 
-        sqr_q = self.puzzle.get_sqr_q(I, J)
+        sqr_q = self.puzzle.get_sqr_q(i, j)
 
         for child in sqr_q.children:
             self.assertTrue(child in EXP_CHILDREN)
