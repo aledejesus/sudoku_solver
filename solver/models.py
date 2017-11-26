@@ -86,14 +86,16 @@ class SudokuPuzzle(models.Model):
                     break
 
             while True:
+                found = False
                 puzzle_cells = PuzzleCell.objects.filter(
                     puzzle=self, filled=False)
 
                 for cell in puzzle_cells:
-                    found = self.single_pos_algo(cell)
-                    if found:
-                        break
-                else:
+                    cell.update_possibilities(
+                        cell.determine_possibilities(self))
+                    if self.single_pos_algo(cell) and not found:
+                        found = True
+                if not found:
                     break
 
             qty_vals_aft = self.get_known_vals_qty()
@@ -374,7 +376,6 @@ class SudokuPuzzle(models.Model):
             list(sqr_cells)]
 
         for related_cells in related_cells_lst:
-            repeated_poss = set()
             poss = set(cell.possibilities)
 
             for related_cell in related_cells:
@@ -383,8 +384,6 @@ class SudokuPuzzle(models.Model):
                 else:
                     known_poss = set(related_cell.possibilities)
                 poss = poss.difference(known_poss)
-                # repeated_poss = repeated_poss.update(known_poss)
-                # REVIEW THIS APPROACH ^
                 # len(poss) == 0 means no unique possibilities
                 if len(poss) == 0:
                     break
@@ -445,7 +444,6 @@ class PuzzleCell(models.Model):
     def __str__(self):
         return "v:%i - r:%i - c:%i" % (self.value, self.row, self.col)
 
-
     @silk_profile()
     def determine_possibilities(self, puzzle):
         """ Determines all possibilities for a given cell.
@@ -466,7 +464,7 @@ class PuzzleCell(models.Model):
         cell_poss = cell_poss.difference(set(sqr))
 
         if len(cell_poss) < 1 or len(cell_poss) > 9:
-            raise Exception("Invalid number of possibilities")
+            raise ValueError("Invalid number of possibilities")
 
         return cell_poss
 
