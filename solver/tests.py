@@ -1,8 +1,9 @@
+import copy
 from django.test import TestCase, Client
 from factories import (
     SudokuPuzzleFactory, PuzzleCellFactory)
 import numpy as np
-from . import models
+from . import models, views
 from .templatetags.return_item import return_item
 from .templatetags.sudoku_grid import sudoku_grid
 from django.db.models import Q
@@ -157,7 +158,7 @@ class SudokuPuzzleTestCase(TestCase):
         self.assertFalse(first_cell.filled)
         self.assertEqual(first_cell.value, 0)
 
-        cell_poss = first_cell.determine_possibilities()
+        cell_poss = first_cell.determine_possibilities(self.puzzle)
         first_cell.update_possibilities(cell_poss)
         self.puzzle.single_cand_algo(first_cell)
         first_cell = models.PuzzleCell.objects.get(
@@ -471,14 +472,14 @@ class PuzzleCellTestCase(TestCase):
 
     def test_determine_possibilities(self):
         exp_poss = [3, 5, 9]  # expected possibilities
-        cell_poss = self.cell.determine_possibilities()
+        cell_poss = self.cell.determine_possibilities(self.puzzle)
         self.assertEqual(len(set(exp_poss).difference(set(cell_poss))), 0)
 
-    def test_determine_possibilities_raises_exception(self):
+    def test_determine_possibilities_raises_value_error(self):
         i = 0
         self.cell.puzzle.solved_puzzle[i] = [9, 3, 6, 7, 5, 1, 4, 2, 8]
-        with self.assertRaises(Exception):
-            self.cell.determine_possibilities()
+        with self.assertRaises(ValueError):
+            self.cell.determine_possibilities(self.puzzle)
 
     def test_update_possibilities(self):
         exp_poss = []
@@ -503,13 +504,14 @@ class SolverViewsTestCase(TestCase):
         response = self.client.get('/solver/numbers/')
         self.assertEqual(response.status_code, 200)
 
-    def test_test_solver(self):
-        TESTS = ('easy', 'medium')
+    def test_test_solver_success(self):
         response = self.client.get('/solver/test_solver/')
         self.assertEqual(response.status_code, 200)
         correct_ids = list()
 
-        for test in TESTS:
+        for test in views.TESTS:
+            # Verify that each solved and unsolved id only
+            # appears once.
             id_unsolved = 'id_grid_%s_unsolved' % test
             id_solved = 'id_grid_%s_solved' % test
 
@@ -530,7 +532,18 @@ class SolverViewsTestCase(TestCase):
                 if pos_id_solved == -1:
                     correct_ids.append(id_solved)
 
-        self.assertEqual(len(correct_ids), len(TESTS)*2)
+        self.assertEqual(len(correct_ids), len(views.TESTS)*2)
+        self.assertEqual(response.content.count(
+            'test passed: True'), len(views.TESTS))
+
+    def test_test_solver_failed_test(self):
+        orig_tests = copy.copy(views.TESTS)
+        views.TESTS = ('failure',)
+        response = self.client.get('/solver/test_solver/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content.count(
+            'test passed: False'), len(views.TESTS))
+        views.TESTS = copy.copy(orig_tests)
 
 
 class ReturnItemFilterTestCase(TestCase):

@@ -4,6 +4,8 @@ from collections import OrderedDict
 import numpy as np
 from silk.profiling.profiler import silk_profile
 
+TESTS = ('easy', 'medium', 'hard')
+
 
 def choose_method(request):
     return render(request, 'choose_method.html')
@@ -15,7 +17,7 @@ def input_numbers(request):
 
 @silk_profile()
 def test_solver(request):
-    tests = ['easy', 'medium', 'hard']
+    global TESTS
     unsolved_db = {}
     solved_db = {}
     unsolved_disp = {}
@@ -23,7 +25,7 @@ def test_solver(request):
     context = {}
     context["tests"] = OrderedDict({})
 
-    for test in tests:
+    for test in TESTS:
         f = open('static/txt/test_%s.txt' % test)
         # sets key in this dictionaries to the name of the difficulty and the
         # value as an empty puzzle

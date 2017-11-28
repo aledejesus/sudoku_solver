@@ -68,19 +68,16 @@ class SudokuPuzzle(models.Model):
 
         # if values were found run again
         while True:
-            self.save()
-            # ^ this is done so the determine_possibilities method
-            # uses the updated solved_puzzle
             qty_vals_bef = self.get_known_vals_qty()
             # known vals qty BEFORE running solving methods
 
             puzzle_cells = None
 
             while True:
-                puzzle_cells = PuzzleCell.objects.select_related(
-                    'puzzle').filter(puzzle=self, filled=False)
+                puzzle_cells = PuzzleCell.objects.filter(
+                    puzzle=self, filled=False)
 
-                for cell in list(puzzle_cells):
+                for cell in puzzle_cells:
                     found = self.rec_sca_call(cell)
 
                     if found:
@@ -89,14 +86,16 @@ class SudokuPuzzle(models.Model):
                     break
 
             while True:
-                puzzle_cells = PuzzleCell.objects.select_related(
-                    'puzzle').filter(puzzle=self, filled=False)
+                found = False
+                puzzle_cells = PuzzleCell.objects.filter(
+                    puzzle=self, filled=False)
 
-                for cell in list(puzzle_cells):
-                    found = self.single_pos_algo(cell)
-                    if found:
-                        break
-                else:
+                for cell in puzzle_cells:
+                    cell.update_possibilities(
+                        cell.determine_possibilities(self))
+                    if self.single_pos_algo(cell) and not found:
+                        found = True
+                if not found:
                     break
 
             qty_vals_aft = self.get_known_vals_qty()
@@ -239,34 +238,48 @@ class SudokuPuzzle(models.Model):
 
     @silk_profile()
     def create_puzzle_cells(self, auto_fill=True):
+        to_create = []
         for i in range(9):
             for j in range(9):
                 cell = PuzzleCell(puzzle=self, row=i, col=j)
 
                 if self.solved_puzzle[i][j] == 0:
-                    cell_poss = cell.determine_possibilities()
+                    cell_poss = cell.determine_possibilities(self)
                     cell.update_possibilities(cell_poss)
 
                     if auto_fill and len(cell_poss) == 1:
-                        self.single_cand_algo(cell)
+                        cell = self.single_cand_algo(cell, save=False)
 
                 else:
                     cell.value = self.solved_puzzle[i][j]
                     cell.filled = True
 
-                cell.save()
+                to_create.append(cell)
+        PuzzleCell.objects.bulk_create(to_create)
 
     @silk_profile()
-    def single_cand_algo(self, cell):
-        # single candidate algorithm
+    def single_cand_algo(self, cell, save=True):
+        """ Applies the single candidate algorithm to a cell.
+
+            Args:
+                - cell (PuzzleCell): cell to apply the algorithm to.
+                - save (bool): whether to save the instance
+                    or return it. This is a temporary argument and will
+                    be removed after issue #121 is solved.
+
+            Returns:
+                PuzzleCell when save is False
+        """
 
         cell.value = cell.possibilities[0]
         cell.filled = True
         self.solved_puzzle[
             cell.row][cell.col] = cell.value  # add value to puzzle if found
 
-        cell.save()
-        self.save()
+        if save:
+            cell.save()
+        else:
+            return cell
 
     @silk_profile()
     def set_missing_vals_pos(self):
@@ -318,8 +331,9 @@ class SudokuPuzzle(models.Model):
             Recursive single candidate algorithm (single_cand_algo) call.
         """
 
-        cell_poss = cell.determine_possibilities()
+        cell_poss = cell.determine_possibilities(self)
         cell.update_possibilities(cell_poss)
+        cell.save()
         vals_found = False
 
         if len(cell_poss) == 1:
@@ -366,9 +380,10 @@ class SudokuPuzzle(models.Model):
 
             for related_cell in related_cells:
                 if related_cell.filled:
-                    poss = poss.difference(set([related_cell.value]))
+                    known_poss = set([related_cell.value])
                 else:
-                    poss = poss.difference(set(related_cell.possibilities))
+                    known_poss = set(related_cell.possibilities)
+                poss = poss.difference(known_poss)
                 # len(poss) == 0 means no unique possibilities
                 if len(poss) == 0:
                     break
@@ -430,10 +445,14 @@ class PuzzleCell(models.Model):
         return "v:%i - r:%i - c:%i" % (self.value, self.row, self.col)
 
     @silk_profile()
-    def determine_possibilities(self):
-        # Determines all possibilities for a given cell
+    def determine_possibilities(self, puzzle):
+        """ Determines all possibilities for a given cell.
 
-        puzzle = self.puzzle
+            Args:
+                - puzzle: SudokuPuzzle instance. It is passed as
+                    an argument given that the related instance
+                    may not be saved.
+        """
 
         cell_poss = set(ALL_POSS)
         row = puzzle.get_row(self.row)
@@ -445,11 +464,10 @@ class PuzzleCell(models.Model):
         cell_poss = cell_poss.difference(set(sqr))
 
         if len(cell_poss) < 1 or len(cell_poss) > 9:
-            raise Exception("Invalid number of possibilities")
+            raise ValueError("Invalid number of possibilities")
 
         return cell_poss
 
     @silk_profile()
     def update_possibilities(self, cell_poss):
         self.possibilities = list(cell_poss)
-        self.save()
