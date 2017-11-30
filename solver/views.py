@@ -1,10 +1,16 @@
-from django.shortcuts import render
-from .models import SudokuPuzzle
-from collections import OrderedDict
 import numpy as np
+import time
+
+from collections import OrderedDict
+from django.shortcuts import render
 from silk.profiling.profiler import silk_profile
 
+from .models import SudokuPuzzle
+from .tasks import solve_puzzle
+
 TESTS = ('easy', 'medium', 'hard')
+POLL_FREQ = 1  # poll frequency. One poll every POLL_FREQ seconds
+POLL_TIMEOUT = 20  # time to wait before giving up on a puzzle
 
 
 def choose_method(request):
@@ -24,6 +30,7 @@ def test_solver(request):
     passed_test = {}
     context = {}
     context["tests"] = OrderedDict({})
+    celery_res = {}
 
     for test in TESTS:
         f = open('static/txt/test_%s.txt' % test)
@@ -60,18 +67,34 @@ def test_solver(request):
         f.close()
         puzzle = SudokuPuzzle(unsolved_puzzle=unsolved_db[test])
         puzzle.save()
-        puzzle.solve()
-
-        if puzzle.solved and \
-                np.array_equal(solved_db[test], puzzle.solved_puzzle):
-            passed_test[test] = True
-        else:
-            passed_test[test] = False
+        celery_res[test] = solve_puzzle.delay(puzzle.pk)
 
         context["tests"][test] = {
             "unsolved": unsolved_disp[test],
-            "solved": puzzle.solved_puzzle,
-            "passed_test": passed_test[test],
-            "solving_time": puzzle.solving_time}
+            "solved": unsolved_disp[test],
+            "passed_test": False,
+            "solving_time": 0.0}
+
+    timeout = time.time() + POLL_TIMEOUT
+    while True:
+        for k, v in celery_res.items():
+            if v.ready():
+                puzzle = SudokuPuzzle.objects.get(pk=int(v.result))
+                if puzzle.solved and \
+                        np.array_equal(solved_db[k], puzzle.solved_puzzle):
+                    passed_test = True
+                else:
+                    passed_test = False
+
+                context["tests"][k].update({
+                    "solved": puzzle.solved_puzzle,
+                    "passed_test": passed_test,
+                    "solving_time": puzzle.solving_time})
+                del celery_res[k]
+
+        if not len(celery_res) or time.time() > timeout:
+            break
+        else:
+            time.sleep(POLL_FREQ)
 
     return render(request, 'test_solver.html', context)
