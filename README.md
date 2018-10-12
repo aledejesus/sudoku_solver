@@ -8,10 +8,6 @@ The purpose of this leisure project is to build a web app that lets users input 
 
 *More details about each phase will be added in future commits.
 
-### FAQs
+## How to run?
 
-#### Q: Dude ... why?
-_**A:**_ Because I love sudoku, because I get frustrated often with difficult puzzles AND mainly because I want to improve my coding skills :D
-
-### Contact
-For any suggestions or comments feel free to email me at **alejandro.dejesus93@gmail.com**
+Clone repository, install python packages specified in requirements.txt and run `python manage.py run` to start the app. Website should be available from http://localhost:8000.
