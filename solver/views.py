@@ -4,7 +4,7 @@ from collections import OrderedDict
 import numpy as np
 from silk.profiling.profiler import silk_profile
 
-TESTS = ('hard')
+TESTS = ('hard',)
 
 
 def choose_method(request):
