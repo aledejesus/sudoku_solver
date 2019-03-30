@@ -20,6 +20,7 @@ Flask-Migrate==2.2.1
 Flask-SQLAlchemy==2.3.2
 Flask-WTF==0.14.2
 google-auth==1.5.1
+gunicorn==19.9.0
 httplib2==0.11.3
 idna==2.6
 ipaddress==1.0.17
